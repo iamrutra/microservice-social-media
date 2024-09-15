@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ~/apps/mysql:/var/lib/mysql
+    networks:
+        - social-network
+    restart: unless-stopped
+
+networks:
+    social-network:
+        driver: bridge
+volumes:
+    mysql:
+      driver: local
+
