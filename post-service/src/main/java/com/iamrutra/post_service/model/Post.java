@@ -1,10 +1,10 @@
 package com.iamrutra.post_service.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,8 +22,8 @@ public class Post {
     private String title;
     private String content;
     private Integer userId;
-    @OneToMany(mappedBy = "post")
-    private List<Likes> likes;
+    private Integer totalLikes;
+    private Integer totalComments;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

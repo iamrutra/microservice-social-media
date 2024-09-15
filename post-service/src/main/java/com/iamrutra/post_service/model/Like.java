@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "_likes")
-public class Likes {
+public class Like {
     @Id
     @GeneratedValue
     private Integer id;

@@ -1,7 +1,7 @@
 package com.iamrutra.post_service.mapper;
 
 import com.iamrutra.post_service.model.LikeResponse;
-import com.iamrutra.post_service.model.Likes;
+import com.iamrutra.post_service.model.Like;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class LikeMapper {
-    public List<LikeResponse> mapToListLikeResponse(List<Likes> likes) {
+    public List<LikeResponse> mapToListLikeResponse(List<Like> likes) {
         return likes.stream().map(like -> {
             LikeResponse response = new LikeResponse();
             response.setId(like.getId());

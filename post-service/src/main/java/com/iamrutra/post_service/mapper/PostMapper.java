@@ -12,6 +12,8 @@ public class PostMapper {
                 .title(request.title())
                 .content(request.content())
                 .userId(request.userId())
+                .totalLikes(0)
+                .totalComments(0)
                 .build();
     }
 }
