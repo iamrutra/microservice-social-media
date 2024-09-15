@@ -6,6 +6,7 @@ import com.iamrutra.post_service.model.Like;
 import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.repository.LikeRepository;
 import com.iamrutra.post_service.repository.PostRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class LikeService {
     private final PostRepository postRepository;
     private final LikeMapper likeMapper;
 
+    @Transactional
     public void likePost(int postId, int userId) {
         Post post = postRepository.findById(postId).get();
         if(!likeRepository.existsByPostIdAndUserId(postId, userId)) {
