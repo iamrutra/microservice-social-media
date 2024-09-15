@@ -28,5 +28,5 @@ public class LikeController {
     public ResponseEntity<?> getLikesByUserId(@PathVariable int userId) {
         return ResponseEntity.ok(likeService.getLikesByUserId(userId));
     }
-    
+
 }

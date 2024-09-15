@@ -10,13 +10,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-  security:
-    oauth2:
-      client:
-        registration:
-            google:
-                client-id: 736076515726-sbjvsptle424r1of631rjofkhgfvu42e.apps.googleusercontent.com
-                client-secret: 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
+  
     user:
       name: admin
       password: admin
