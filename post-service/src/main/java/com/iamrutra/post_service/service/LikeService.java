@@ -40,11 +40,17 @@ public class LikeService {
     }
 
     public List<LikeResponse> getLikesByPostId(int postId) {
+        if (postRepository.findById(postId).isEmpty()) {
+            throw new RuntimeException("Post with id " + postId + " not found");
+        }
         List<Like> likes = likeRepository.findAllByPostId(postId);
         return likeMapper.mapToListLikeResponse(likes);
     }
 
     public List<LikeResponse> getLikesByUserId(int userId) {
+        if(likeRepository.findAllByUserId(userId).isEmpty()) {
+            throw new RuntimeException("User with id " + userId + " not found");
+        }
         List<Like> likes = likeRepository.findAllByUserId(userId);
         return likeMapper.mapToListLikeResponse(likes);
     }

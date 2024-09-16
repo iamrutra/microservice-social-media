@@ -1,6 +1,5 @@
 package com.iamrutra.post_service.service;
 
-import com.iamrutra.post_service.client.UserClient;
 import com.iamrutra.post_service.mapper.PostMapper;
 import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.model.PostRequest;
@@ -9,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +15,6 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostMapper postMapper;
-    private final UserClient userClient;
 
     public Integer createPost(PostRequest request) {
         Post post = postMapper.mapToPost(request);
@@ -25,8 +22,12 @@ public class PostService {
     }
 
     public List<Post> getPostsByUserId(Integer userId) {
-        if()
-        return postRepository.findAllByUserId(userId);
+        if(postRepository.findById(userId).isPresent()) {
+            return postRepository.findAllByUserId(userId);
+        } else {
+            throw new RuntimeException("User with id " + userId + " not found");
+        }
+
     }
 
     public Post getPostById(Integer postId) {
