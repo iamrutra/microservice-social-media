@@ -16,8 +16,8 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/like")
-    public ResponseEntity<?> likePost(@RequestBody LikeRequest request) {
-        likeService.likePost(request.getPostId(), request.getUserId());
+    public ResponseEntity<?> updatePostLikeStatus(@RequestBody LikeRequest request) {
+        likeService.updatePostLikeStatus(request.getPostId(), request.getUserId());
         return ResponseEntity.accepted().build();
     }
 

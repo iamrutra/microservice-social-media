@@ -5,7 +5,6 @@ import com.iamrutra.user_service.mapper.UserMapper;
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,10 +30,6 @@ public class UserService {
         user.setLocked(false);
         user.setRole("USER");
         return userRepository.save(user);
-    }
-
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
     }
 
     public Optional<User> findById(Integer id) {

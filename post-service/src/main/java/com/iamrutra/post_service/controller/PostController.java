@@ -30,4 +30,14 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostsByUserId(userId));
     }
 
+    @GetMapping("/get/{id}")
+    public ResponseEntity<Post> getPostById(@PathVariable("id") int id) {
+        return ResponseEntity.ok(postService.getPostById(id));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deletePostById(@PathVariable("id") int id) {
+        return ResponseEntity.ok(postService.deletePostById(id));
+    }
+
 }

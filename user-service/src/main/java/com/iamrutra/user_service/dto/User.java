@@ -3,6 +3,7 @@ package com.iamrutra.user_service.dto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
@@ -31,6 +32,8 @@ public class User {
     private String password;
     @CreationTimestamp
     private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
     private String role;
     private boolean isLocked;
     private boolean isEnabled;

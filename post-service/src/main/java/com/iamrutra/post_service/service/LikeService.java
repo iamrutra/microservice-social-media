@@ -21,7 +21,7 @@ public class LikeService {
     private final LikeMapper likeMapper;
 
     @Transactional
-    public void likePost(int postId, int userId) {
+    public void updatePostLikeStatus(int postId, int userId) {
         Post post = postRepository.findById(postId).get();
         if(!likeRepository.existsByPostIdAndUserId(postId, userId)) {
             post.setTotalLikes(post.getTotalLikes() + 1);
