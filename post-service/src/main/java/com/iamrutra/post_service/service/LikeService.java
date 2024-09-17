@@ -22,7 +22,8 @@ public class LikeService {
 
     @Transactional
     public void updatePostLikeStatus(int postId, int userId) {
-        Post post = postRepository.findById(postId).get();
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post with id " + postId + " not found"));
         if(!likeRepository.existsByPostIdAndUserId(postId, userId)) {
             post.setTotalLikes(post.getTotalLikes() + 1);
             Like like = Like.builder()

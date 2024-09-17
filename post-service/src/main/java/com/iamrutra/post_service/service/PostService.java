@@ -31,10 +31,8 @@ public class PostService {
     }
 
     public Post getPostById(Integer postId) {
-        if(!postRepository.existsById(postId)) {
-            throw new RuntimeException("Post with id " + postId + " not found");
-        }
-        return postRepository.findById(postId).get();
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post with id " + postId + " not found"));
     }
 
     public String deletePostById(int id) {

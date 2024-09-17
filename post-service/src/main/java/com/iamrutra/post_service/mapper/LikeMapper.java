@@ -11,11 +11,11 @@ import java.util.stream.Collectors;
 public class LikeMapper {
     public List<LikeResponse> mapToListLikeResponse(List<Like> likes) {
         return likes.stream().map(like -> {
-            LikeResponse response = new LikeResponse();
-            response.setId(like.getId());
-            response.setPostId(like.getPost().getId());
-            response.setUserId(like.getUserId());
-            return response;
+            return LikeResponse.builder()
+                    .id(like.getId())
+                    .postId(like.getPost().getId())
+                    .userId(like.getUserId())
+                    .build();
         }).collect(Collectors.toList());
     }
 }
