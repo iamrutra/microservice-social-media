@@ -16,4 +16,6 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.type.mapping: 'commentRequest:com.iamrutra.post_service.kafka.CommentEvent'
+        spring.json.trusted.packages: '*'
+        spring.type.mapping: commentEvent:com.iamrutra.post_service.kafka.CommentEvent,likeEvent:com.iamrutra.post_service.kafka.LikeEvent
+

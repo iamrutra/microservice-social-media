@@ -9,7 +9,12 @@ import org.springframework.kafka.config.TopicBuilder;
 public class TopicConfig {
 
     @Bean
-    public NewTopic newTopic(){
-        return TopicBuilder.name("post-service-topic").build();
+    public NewTopic likeTopic(){
+        return TopicBuilder.name("like-topic").build();
+    }
+
+    @Bean
+    public NewTopic commentTopic(){
+        return TopicBuilder.name("comment-topic").build();
     }
 }

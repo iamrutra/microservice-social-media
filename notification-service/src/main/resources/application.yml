@@ -7,10 +7,12 @@ spring:
       group-id: notification-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring.json.trusted.packages: '*'
-        spring.json.type.mapping: '*'
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: '*'
+      spring.json.type.mapping: commentEvent:com.iamrutra.notification_service.events.CommentEvent,likeEvent:com.iamrutra.notification_service.events.LikeEvent
+
+
   mail:
     host: mail-dev
     port: 1025

@@ -1,8 +1,8 @@
-package com.iamrutra.notification_service.events;
+package com.iamrutra.post_service.kafka;
 
 import java.time.LocalDateTime;
 
-public record CommentEvent(
+public record LikeEvent(
         String senderName,
         String authorEmail,
         int authorId,

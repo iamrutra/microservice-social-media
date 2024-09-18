@@ -4,10 +4,9 @@ import java.time.LocalDateTime;
 
 public record CommentEvent(
         String senderName,
-        String senderEmail,
+        String authorEmail,
         int authorId,
         int postId,
-        LocalDateTime time,
-        String typeEvent
+        LocalDateTime time
 ){
 }

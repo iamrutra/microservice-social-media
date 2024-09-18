@@ -36,7 +36,7 @@ public class CommentService {
                     .orElseThrow(() -> new RuntimeException("Post not found"));
             post.setTotalComments(post.getTotalComments() + 1);
             postRepository.save(post);
-            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId(), "COMMENT");
+            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId());
             return commentRepository.save(comment).getId();
         } else {
             throw new RuntimeException("Post not found");
@@ -45,16 +45,27 @@ public class CommentService {
 
 
     @Async
-    public void sendNewCommentEvent(String sender, String senderEmail, int authorId, int postId, String typeEvent) {
+    public void sendNewCommentEvent(String sender, String authorEmail, int authorId, int postId) {
         var event = new CommentEvent(
                 sender,
-                senderEmail,
+                authorEmail,
                 authorId,
                 postId,
-                LocalDateTime.now(),
-                typeEvent
+                LocalDateTime.now()
         );
-        kafkaTemplate.send("post-service-topic", event);
+        kafkaTemplate.send("comment-topic", event);
+    }
+
+    @Async
+    public void sendNewLikeEvent(String sender, String authorEmail, int authorId, int postId) {
+        var event = new CommentEvent(
+                sender,
+                authorEmail,
+                authorId,
+                postId,
+                LocalDateTime.now()
+        );
+        kafkaTemplate.send("like-topic", event);
     }
 
     public CommentResponse getComment(Integer id) {
