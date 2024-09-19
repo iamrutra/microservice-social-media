@@ -26,21 +26,17 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final PostRepository postRepository;
     private final UserClient userClient;
-    private final KafkaTemplate<Integer, CommentEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public Integer createComment(CommentRequest request) {
-        if(postRepository.findById(request.getPostId()).isPresent()){
-            var comment = commentMapper.toComment(request);
-            UserRep user = userClient.findUserById(request.getUserId());
             Post post = postRepository.findById(request.getPostId())
                     .orElseThrow(() -> new RuntimeException("Post not found"));
+            var comment = commentMapper.toComment(request);
+            UserRep user = userClient.findUserById(request.getUserId());
+            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId());
             post.setTotalComments(post.getTotalComments() + 1);
             postRepository.save(post);
-            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId());
             return commentRepository.save(comment).getId();
-        } else {
-            throw new RuntimeException("Post not found");
-        }
     }
 
 

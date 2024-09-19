@@ -13,7 +13,7 @@ public class EventHandler {
 
     private final JavaMailSender mailSender;
 
-    @KafkaListener(topics = "comment-topic")
+    @KafkaListener(topics = "comment-topic", groupId = "notification-service")
     public void NewCommentHandler(CommentEvent event){
         MimeMessagePreparator messagePreparator = mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
@@ -25,15 +25,15 @@ public class EventHandler {
         mailSender.send(messagePreparator);
     }
 
-    @KafkaListener(topics = "like-topic")
-    public void NewLikeHandler(CommentEvent event){
-        MimeMessagePreparator messagePreparator = mimeMessage -> {
-            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-            messageHelper.setFrom("iamrutra@gmail.com");
-            messageHelper.setSubject("New Like");
-            messageHelper.setTo(event.authorEmail());
-            messageHelper.setText(String.format("New like from %s", event.senderName()));
-        };
-        mailSender.send(messagePreparator);
-    }
+//    @KafkaListener(topics = "like-topic", groupId = "notification-service")
+//    public void NewLikeHandler(CommentEvent event){
+//        MimeMessagePreparator messagePreparator = mimeMessage -> {
+//            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+//            messageHelper.setFrom("iamrutra@gmail.com");
+//            messageHelper.setSubject("New Like");
+//            messageHelper.setTo(event.authorEmail());
+//            messageHelper.setText(String.format("New like from %s", event.senderName()));
+//        };
+//        mailSender.send(messagePreparator);
+//    }
 }
