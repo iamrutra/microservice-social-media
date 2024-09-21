@@ -24,16 +24,16 @@ public class KafkaConfig {
     public Map<String, Object> consumerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class); // Ключ в виде строки
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class); // Значение — JSON
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         return props;
     }
 
     @Bean
     public ConsumerFactory<String, CommentEvent> consumerFactory() {
-        JsonDeserializer<CommentEvent> deserializer = new JsonDeserializer<>(CommentEvent.class); // Указываем тип события
-        deserializer.setRemoveTypeHeaders(false);
-        deserializer.addTrustedPackages("*"); // Разрешаем десериализацию для всех пакетов, можно уточнить пакеты для безопасности
+        JsonDeserializer<CommentEvent> deserializer = new JsonDeserializer<>(CommentEvent.class);
+        deserializer.setRemoveTypeHeaders(true);
+        deserializer.addTrustedPackages("*");
         deserializer.setUseTypeMapperForKey(true);
 
         return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(), deserializer);

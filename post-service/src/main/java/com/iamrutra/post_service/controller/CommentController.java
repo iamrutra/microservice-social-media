@@ -5,6 +5,10 @@ import com.iamrutra.post_service.model.CommentResponse;
 import com.iamrutra.post_service.service.CommentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,9 +32,17 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getComment(id));
     }
 
-    @GetMapping("/get/{postId}")
-    public ResponseEntity<List<CommentResponse>> getAllCommentsByPostId(@PathVariable Integer postId) {
-        return ResponseEntity.ok(commentService.getAllCommentsByPostId(postId));
+    @GetMapping("/getAll/{postId}")
+    public ResponseEntity<Page<CommentResponse>> getAllCommentsByPostId(
+            @PathVariable Integer postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
+    ) {
+        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(commentService.getAllCommentsByPostId(postId, pageable));
     }
 
     @DeleteMapping("/delete/{id}")

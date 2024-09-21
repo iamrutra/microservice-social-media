@@ -8,6 +8,8 @@ import com.iamrutra.post_service.repository.LikeRepository;
 import com.iamrutra.post_service.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,19 +42,19 @@ public class LikeService {
 
     }
 
-    public List<LikeResponse> getLikesByPostId(int postId) {
+    public Page<LikeResponse> getLikesByPostId(int postId, Pageable pageable) {
         if (postRepository.findById(postId).isEmpty()) {
             throw new RuntimeException("Post with id " + postId + " not found");
         }
-        List<Like> likes = likeRepository.findAllByPostId(postId);
-        return likeMapper.mapToListLikeResponse(likes);
+        Page<Like> likes = likeRepository.findAllByPostId(postId, pageable);
+        return likeMapper.mapToListLikeResponse(likes, pageable);
     }
 
-    public List<LikeResponse> getLikesByUserId(int userId) {
-        if(likeRepository.findAllByUserId(userId).isEmpty()) {
+    public Page<LikeResponse> getLikesByUserId(int userId, Pageable pageable) {
+        if(likeRepository.findAllByUserId(userId, pageable).isEmpty()) {
             throw new RuntimeException("User with id " + userId + " not found");
         }
-        List<Like> likes = likeRepository.findAllByUserId(userId);
-        return likeMapper.mapToListLikeResponse(likes);
+        Page<Like> likes = likeRepository.findAllByUserId(userId, pageable);
+        return likeMapper.mapToListLikeResponse(likes, pageable);
     }
 }

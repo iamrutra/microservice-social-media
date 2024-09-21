@@ -11,12 +11,16 @@ import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.repository.CommentRepository;
 import com.iamrutra.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Service
 @RequiredArgsConstructor
@@ -49,8 +53,10 @@ public class CommentService {
                 postId,
                 LocalDateTime.now()
         );
+
         kafkaTemplate.send("comment-topic", event);
     }
+
 
     @Async
     public void sendNewLikeEvent(String sender, String authorEmail, int authorId, int postId) {
@@ -70,11 +76,9 @@ public class CommentService {
 
     }
 
-    public List<CommentResponse> getAllCommentsByPostId(Integer postId) {
-        return commentRepository.findAllByPostId(postId).stream()
-                .map(commentMapper::toCommentResponse)
-                .toList();
-
+    public Page<CommentResponse> getAllCommentsByPostId(Integer postId, Pageable pageable) {
+        Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
+        return comments.map(commentMapper::toCommentResponse);
     }
 
     public String deleteComment(Integer id) {

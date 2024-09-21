@@ -5,6 +5,10 @@ import com.iamrutra.post_service.model.PostRequest;
 import com.iamrutra.post_service.service.PostService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +28,17 @@ public class PostController {
         return ResponseEntity.created(null).body(postService.createPost(request));
     }
 
-
     @GetMapping("/user/{id}")
-    public ResponseEntity<List<Post>> getPostsByUserId(@PathVariable("id") int userId) {
-        return ResponseEntity.ok(postService.getPostsByUserId(userId));
+    public ResponseEntity<Page<Post>> getPostsByUserId(
+            @PathVariable("id") int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
+    ) {
+        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(postService.getPostsByUserId(userId, pageable));
     }
 
     @GetMapping("/get/{id}")

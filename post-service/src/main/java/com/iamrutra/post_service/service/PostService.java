@@ -5,6 +5,8 @@ import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.model.PostRequest;
 import com.iamrutra.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,13 +23,8 @@ public class PostService {
         return postRepository.save(post).getId();
     }
 
-    public List<Post> getPostsByUserId(Integer userId) {
-        if(postRepository.findById(userId).isPresent()) {
-            return postRepository.findAllByUserId(userId);
-        } else {
-            throw new RuntimeException("User with id " + userId + " not found");
-        }
-
+    public Page<Post> getPostsByUserId(Integer userId, Pageable pageable) {
+        return postRepository.findAllByUserId(userId, pageable);
     }
 
     public Post getPostById(Integer postId) {
