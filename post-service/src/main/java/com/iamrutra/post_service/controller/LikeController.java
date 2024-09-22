@@ -41,7 +41,7 @@ public class LikeController {
     public ResponseEntity<?> getLikesByUserId(
             @PathVariable int userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "false") boolean ascending
     ) {
