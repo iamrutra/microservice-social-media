@@ -1,5 +1,6 @@
 package com.iamrutra.post_service.config;
 
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -15,8 +16,8 @@ public class AmazonConfig {
     @Bean
     public AmazonS3 s3() {
         AWSCredentials awsCredentials = new BasicAWSCredentials(
-                "your-access-key",
-                "your-secret-key"
+                "your-access-key", // replace with your access key
+                "your-secret-key" // replace with your secret key
         );
 
         return AmazonS3ClientBuilder
