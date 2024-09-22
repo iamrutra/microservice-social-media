@@ -24,6 +24,7 @@ public class Post {
     private Integer userId;
     private Integer totalLikes;
     private Integer totalComments;
+    private String postImage;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

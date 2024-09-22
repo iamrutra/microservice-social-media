@@ -9,8 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RequestMapping("posts")
 @Tag(name = "Post Controller", description = "APIs for post management")
+@CrossOrigin("*")
 public class PostController {
 
     private final PostService postService;
@@ -49,6 +52,18 @@ public class PostController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deletePostById(@PathVariable("id") int id) {
         return ResponseEntity.ok(postService.deletePostById(id));
+    }
+
+    @PostMapping(
+            path = "/{postId}/image/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> uploadPostImage(
+            @PathVariable("postId") int postId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ResponseEntity.ok(postService.uploadPostImage(postId, file));
     }
 
 }
