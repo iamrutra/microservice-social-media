@@ -6,8 +6,10 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record PostRequest (
-        Integer id,
+        int id,
         @NotNull(message = "Title cannot be null")
         @NotEmpty(message = "Title cannot be empty")
         @NotBlank(message = "Title cannot be blank")

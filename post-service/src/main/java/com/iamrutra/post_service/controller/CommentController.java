@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,13 +29,13 @@ public class CommentController {
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<CommentResponse> getComment(@PathVariable Integer id) {
+    public ResponseEntity<CommentResponse> getComment(@PathVariable int id) {
         return ResponseEntity.ok(commentService.getComment(id));
     }
 
     @GetMapping("/getAll/{postId}")
     public ResponseEntity<Page<CommentResponse>> getAllCommentsByPostId(
-            @PathVariable Integer postId,
+            @PathVariable int postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,

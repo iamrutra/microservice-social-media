@@ -5,11 +5,13 @@ import com.iamrutra.user_service.mapper.UserMapper;
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,11 +34,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User findById(Integer id) {
-        return userRepository.findById(id).get();
+    public User findById(int id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
-
-
 
 }
 

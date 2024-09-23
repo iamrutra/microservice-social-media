@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,13 +28,14 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User saveUser(@RequestBody UserRequest request) {
-        return userService.saveUser(request);
+    public ResponseEntity<User> saveUser(@RequestBody UserRequest request) {
+        return ResponseEntity.created(null).body(userService.saveUser(request));
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/{id}")
-    public User findUserById(@PathVariable("id") int id){
-        return userService.findById(id);
+    public ResponseEntity<User> findUserById(@PathVariable("id") int id){
+        return ResponseEntity.ok(userService.findById(id));
     }
 
 }
