@@ -9,7 +9,7 @@ const UserProfile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const userData = await UserService.getUsers(id);
+                const userData = await UserService.getUser(id);
                 setUser(userData);
             } catch (error) {
                 console.error('Ошибка при получении данных пользователя:', error);

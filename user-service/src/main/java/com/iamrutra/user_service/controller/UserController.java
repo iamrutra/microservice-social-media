@@ -22,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getAll")
     public List<User> getAllUsers() {
         return userService.findAllUsers();

@@ -1,0 +1,25 @@
+body{
+    background-color: #eeefea;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.mainAllUsers ul{
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0;
+}
+.mainAllUsers li{
+    font-size: 2rem;
+    width: calc(100% / 3);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.mainAllUsers h1{
+    text-align: center;
+    font-size: 3rem;
+    color: #3b4b2f;
+}

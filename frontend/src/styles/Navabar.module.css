@@ -1,0 +1,13 @@
+nav{
+    background-color: #537537;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 7vh;
+}
+nav a{
+    color: #eeefea;
+    text-decoration: none;
+    margin: 0 1rem;
+}
