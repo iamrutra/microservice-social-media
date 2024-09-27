@@ -31,6 +31,7 @@ public class PostController {
         return ResponseEntity.created(null).body(postService.createPost(request));
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/user/{id}")
     public ResponseEntity<Page<Post>> getPostsByUserId(
             @PathVariable("id") int userId,
@@ -54,6 +55,7 @@ public class PostController {
         return ResponseEntity.ok(postService.deletePostById(id));
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(
             path = "/{postId}/image/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -64,6 +66,11 @@ public class PostController {
             @RequestParam("file") MultipartFile file
     ) {
         return ResponseEntity.ok(postService.uploadPostImage(postId, file));
+    }
+
+    @GetMapping("{postId}/image/download")
+    public ResponseEntity<?> downloadPostImage(@PathVariable("postId") int postId) {
+        return ResponseEntity.ok(postService.downloadPostImage(postId));
     }
 
 }

@@ -7,9 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,23 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<User> findUserById(@PathVariable("id") int id){
         return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping(
+            path = "/{userId}/image/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<String> uploadUserImage(@PathVariable("userId") int userId,
+                                                  @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(userService.uploadUserImage(userId, file));
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("{userId}/image/download")
+    public byte[] downloadUserImage(@PathVariable("userId") int userId) {
+        return userService.downloadUserImage(userId);
     }
 
 }

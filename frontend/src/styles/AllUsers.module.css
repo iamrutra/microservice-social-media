@@ -23,3 +23,9 @@ body{
     font-size: 3rem;
     color: #3b4b2f;
 }
+.mainAllUsers a{
+    text-decoration: none;
+    color: #3b4b2f;
+    font-style: italic;
+    font-weight: 600;
+}

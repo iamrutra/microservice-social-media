@@ -1,0 +1,33 @@
+.userProfile{
+    display: flex;
+    justify-content: space-around;
+    margin-top: 50px;
+}
+.userProfile h1{
+    font-size: 3rem;
+    color: #3b4b2f;
+}
+.userProfile h2{
+    font-size: 2rem;
+    color: #3b4b2f;
+}
+.userProfile h3{
+    font-size: 1.5rem;
+    color: #3b4b2f;
+}
+.userProfile .user img{
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    margin: 20px 0;
+}
+.userProfile .posts{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+.userProfile .post{
+    width: 70%;
+    margin: 10px 0;
+    padding: 10px;
+}

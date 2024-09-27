@@ -1,10 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useParams} from "react-router-dom";
 import UserService from "../API/UserService";
+import styles from '../styles/UserProfile.module.css';
+import {useDropzone} from "react-dropzone";
+import axios from "axios";
+import PostService from "../API/PostService";
 
 const UserProfile = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
+    const [posts, setPosts] = useState([]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -16,16 +21,55 @@ const UserProfile = () => {
             }
         };
 
+        const fetchPosts = async () => {
+            try {
+                const postsData = await PostService.getPostByUserId(id);
+                console.log(postsData);
+                setPosts(postsData.content);
+            } catch (error) {
+                console.error('Ошибка при получении данных постов пользователя:', error);
+            }
+        };
+
         fetchUser();
+        fetchPosts();
     }, [id]);
+
+    function formatDate(date) {
+        const d = new Date(date);
+        return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}`;
+    }
 
     return (
         <div>
-            <h1>User Profile</h1>
+            <UserProfileDropzone userProfileId={id} />
             {user ? (
-                <div>
-                    <h2>Username: {user.username}</h2>
-                    <h3>Full Name: {user.fullName}</h3>
+                <div className={styles.userProfile}>
+                    <div className={styles.user}>
+                        {user.profileImageLink ? (
+                            <img src={`http://localhost:8010/api/v1/users/${user.id}/image/download`} alt="User avatar" />
+                        ) : null}
+                        <h2>Username: {user.username}</h2>
+                        <h3>Full Name: {user.fullName}</h3>
+                        <h3>Date of Birth: {user.dateOfBirth}</h3>
+                        <h3>Created at: {formatDate(user.createdAt)}</h3>
+                    </div>
+
+                    <div className={styles.posts}>
+                        {posts.map(post => (
+                            <div key={post.id} className={styles.post}>
+                                {post.postImage ? (
+                                    <img src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`} alt="Post image" />
+                                ) : (
+                                    <PostImageDropzone postId={post.id} />
+                                )}
+                                <h3>{post.title}</h3>
+                                <p>{post.content}</p>
+                                <h5>Created at: {formatDate(post.createdAt)}</h5>
+                                <hr />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <p>Loading...</p>
@@ -33,5 +77,74 @@ const UserProfile = () => {
         </div>
     );
 };
+
+function UserProfileDropzone({userProfileId}) {
+    const onDrop = useCallback(acceptedFiles => {
+        const file = acceptedFiles[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        axios.post(`http://localhost:8010/api/v1/users/${userProfileId}/image/upload`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
+        ).then(() => {
+            console.log("file uploaded successfully");
+        }).catch(err => {
+            console.log(err);
+        })
+    }, [userProfileId]);
+
+    const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop})
+
+    return (
+        <div {...getRootProps()}>
+            <input {...getInputProps()} />
+            {
+                isDragActive ?
+                    <p>Drop the files here ...</p> :
+                    <p>Drag 'n' drop some files here, or click to select files</p>
+            }
+        </div>
+    );
+}
+
+function PostImageDropzone({postId}) {
+    const onDrop = useCallback(acceptedFiles => {
+        const file = acceptedFiles[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        axios.post(`http://localhost:8020/api/v1/posts/${postId}/image/upload`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
+        ).then(() => {
+            console.log("file uploaded successfully");
+            // Здесь можно обновить список постов или что-то еще
+        }).catch(err => {
+            console.log(err);
+        })
+    }, [postId]);
+
+    const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop})
+
+    return (
+        <div {...getRootProps()}>
+            <input {...getInputProps()} />
+            {
+                isDragActive ?
+                    <p>Drop the files here ...</p> :
+                    <p>Drag 'n' drop some files here, or click to select files</p>
+            }
+        </div>
+    );
+}
 
 export default UserProfile;

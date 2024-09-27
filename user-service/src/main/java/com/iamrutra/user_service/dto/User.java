@@ -25,11 +25,11 @@ public class User {
     @Column(unique = true)
     private String username;
     private String fullName;
-    private GenderType genderType;
     private LocalDate dateOfBirth;
     @Column(unique = true)
     private String email;
     private String password;
+    private String profileImageLink;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

@@ -44,40 +44,44 @@ public class PostService {
             throw new RuntimeException("Post with id " + id + " not found");
         }
         postRepository.deleteById(id);
-        return "Post with deleted successfully";
+        return "Post deleted successfully";
     }
 
     public String uploadPostImage(int postId, MultipartFile file) {
-        // 1. Check if image is not empty
-        // 2. If file is an image
-        // 3. The post exists in our database
-        // 4. Grab some metadata from file if any
-        // 5. Store the image in s3 and update post with s3 image link
+
         isFileEmpty(file);
         isImage(file);
         Post post = getPostById(postId);
 
         Map<String, String> metadata = extractMetadata(file);
-
         String path = String.format("%s/%s", BucketName.PROFILE_IMAGE.getBucketName(), post.getId());
-        String filename = String.format("%s-%s", file.getOriginalFilename(), UUID.randomUUID());
+        String filename = file.getOriginalFilename();
 
         try {
             fileStore.save(path, filename, Optional.of(metadata), file.getInputStream());
+
             post.setPostImage(filename);
+            postRepository.save(post);
+
             return String.format("Image uploaded successfully for post %s", post.getId());
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Failed to upload image", e);
         }
     }
 
     public byte[] downloadPostImage(int postId) {
         Post post = getPostById(postId);
-        String path = String.format("%s/%s",
-                BucketName.PROFILE_IMAGE.getBucketName(),
-                post.getId()
-        );
-        return post.getPostImage() == null ? new byte[0] : fileStore.download(path, post.getPostImage());
+        if (post.getPostImage() == null) {
+            throw new IllegalStateException("Post does not have an image");
+        }
+
+        String path = String.format("%s/%s", BucketName.PROFILE_IMAGE.getBucketName(), post.getId());
+
+        try {
+            return fileStore.download(path, post.getPostImage());
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to download image", e);
+        }
     }
 
     private static Map<String, String> extractMetadata(MultipartFile file) {
@@ -88,11 +92,8 @@ public class PostService {
     }
 
     private static void isImage(MultipartFile file) {
-        if (!Arrays.asList(
-                IMAGE_JPEG.getMimeType(),
-                IMAGE_PNG.getMimeType(),
-                IMAGE_GIF.getMimeType()
-        ).contains(file.getContentType())) {
+        if (!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType(), IMAGE_GIF.getMimeType())
+                .contains(file.getContentType())) {
             throw new RuntimeException("File must be an image [" + file.getContentType() + "]");
         }
     }
@@ -103,3 +104,4 @@ public class PostService {
         }
     }
 }
+
