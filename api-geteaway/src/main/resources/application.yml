@@ -4,14 +4,28 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
+keycloak:
+  realm: iamrutra
+  auth-server-url: http://localhost:8080/realm/iamrutra
+  resource: springboot-keycloak
+  public-client: true
+  bearer-only: false
+
 server:
   port: 8222
+
 spring:
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  application:
+    name: api-gateway
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/test1
+          issuer-uri: http://localhost:8080/realms/iamrutra
   cloud:
     config:
       enabled: false
@@ -34,11 +48,12 @@ spring:
           predicates:
             - Path=/api/v1/users/**
         - id: post-service
-          uri: http://loclahost:8020
+          uri: http://localhost:8020
           predicates:
             - Path=/api/v1/posts/**
+            - Path=/api/v1/comments/**
+            - Path=/api/v1/likes/**
       discovery:
         locator:
           enabled: true
-  application:
-    name: api-gateway
+

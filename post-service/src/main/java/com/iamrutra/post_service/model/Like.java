@@ -2,6 +2,9 @@ package com.iamrutra.post_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,4 +20,6 @@ public class Like {
     @JoinColumn(name = "post_id")
     private Post post;
     private Integer userId;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }
