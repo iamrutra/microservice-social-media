@@ -36,7 +36,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
         user.setLocked(false);
-        user.setRole("USER");
+        user.setRoles(Collections.singletonList("ROLE_USER"));
         return userRepository.save(user);
     }
 
@@ -115,5 +115,9 @@ public class UserService {
     }
 
 
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }
 

@@ -24,7 +24,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getAll")
     public List<User> getAllUsers() {
         return userService.findAllUsers();
@@ -35,13 +34,16 @@ public class UserController {
         return ResponseEntity.created(null).body(userService.saveUser(request));
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/{id}")
     public ResponseEntity<User> findUserById(@PathVariable("id") int id){
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/username/{username}")
+    public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username) {
+        return ResponseEntity.ok(userService.findByUsername(username));
+    }
+
     @PostMapping(
             path = "/{userId}/image/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
