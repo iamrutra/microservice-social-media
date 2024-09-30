@@ -3,23 +3,58 @@ package com.iamrutra.api_geteaway.controller;
 import com.iamrutra.api_geteaway.dto.LoginRequest;
 import com.iamrutra.api_geteaway.service.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("auth")
 @RequiredArgsConstructor
+@Tag(name = "ApiGateway Controller", description = "APIs for gateway management")
 public class AuthController {
 
     private final JwtService jwtService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // Authenticate user and generate JWT token
-        String token = jwtService.authenticate(loginRequest);
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+        String token = getKeycloakToken(username, password);
+
         if (token != null) {
-            return ResponseEntity.ok(token);  // Return token if authentication is successful
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
-        return ResponseEntity.status(401).body("Unauthorized");
     }
+
+    private String getKeycloakToken(String username, String password) {
+        String url = "http://localhost:8080/realms/iamrutra/protocol/openid-connect/token";
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "password");
+        body.add("client_id", "springboot-keycloak");
+        body.add("username", username);
+        body.add("password", password);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return (String) response.getBody().get("access_token");
+        }
+
+        return null;
+    }
+
 }

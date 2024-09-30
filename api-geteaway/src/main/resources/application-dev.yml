@@ -1,0 +1,63 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+keycloak:
+  realm: iamrutra
+  auth-server-url: http://localhost:8080/realm/iamrutra
+  resource: springboot-keycloak
+  public-client: true
+  bearer-only: false
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/iamrutra
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+      routes:
+        - id: user-service
+          uri: http://localhost:8010
+          predicates:
+            - Path=/api/v1/users/**
+        - id: post-service
+          uri: http://localhost:8020
+          predicates:
+            - Path=/api/v1/posts/**
+            - Path=/api/v1/comments/**
+            - Path=/api/v1/likes/**
+      discovery:
+        locator:
+          enabled: true
+
+
+jwt:
+  secretkey:
+    secret: "5468da0890d1580b0cd2ae61db0dfaf3b6ec200fb92649091cf2ef94f1ce1446d69df2fee03dfda2df75bcfe55316bf1340f67c83e4929f7a1fc22bfbc20bcf7a7ceeb6b1882aae6f12c8b872ed3d43bbdc4cdaa56ba99a6fb4a9b41fddd8c1ece68d31fac4b31b44e0f407483b5b4f10be565017135c7ce430871fc6cdb4b62aeddbe625d9424aecb77f63df1bad9f750fb4c7bc727069d62450415fbd37a0c1497d2297d32b0973940e7534a3860d37f44b1264f5c1cc35e8d31d813471dac871330fb8289ff0da8b06664fb03fb5deccb47b7c98d595da4140de2f97906ec1475ed77f9e4d42695597fb98765494b3e91c1c00188604406244ddc8628d9fd"
+  expiration: 86400000
+  header: Authorization
+  prefix: Bearer
+  type: JWT
