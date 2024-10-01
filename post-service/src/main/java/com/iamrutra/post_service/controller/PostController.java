@@ -21,7 +21,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RequestMapping("posts")
 @Tag(name = "Post Controller", description = "APIs for post management")
-@CrossOrigin("*")
 public class PostController {
 
     private final PostService postService;
@@ -31,7 +30,6 @@ public class PostController {
         return ResponseEntity.created(null).body(postService.createPost(request));
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/user/{id}")
     public ResponseEntity<Page<Post>> getPostsByUserId(
             @PathVariable("id") int userId,
@@ -55,7 +53,6 @@ public class PostController {
         return ResponseEntity.ok(postService.deletePostById(id));
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(
             path = "/{postId}/image/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,

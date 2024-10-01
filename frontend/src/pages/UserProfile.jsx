@@ -23,7 +23,7 @@ const UserProfile = () => {
 
         const fetchPosts = async () => {
             try {
-                const postsData = await PostService.getPostByUserId(id);
+                const postsData = await PostService.getPostsByUserId(id);
                 console.log(postsData);
                 setPosts(postsData.content);
             } catch (error) {
@@ -59,7 +59,7 @@ const UserProfile = () => {
                         {posts.map(post => (
                             <div key={post.id} className={styles.post}>
                                 {post.postImage ? (
-                                    <img src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`} alt="Post image" />
+                                    <img className={styles.postImage} src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`} alt="Post image" />
                                 ) : (
                                     <PostImageDropzone postId={post.id} />
                                 )}
@@ -84,11 +84,12 @@ function UserProfileDropzone({userProfileId}) {
         const formData = new FormData();
         formData.append('file', file);
 
-        axios.post(`http://localhost:8010/api/v1/users/${userProfileId}/image/upload`,
+        axios.post(`http://localhost:8222/api/v1/users/${userProfileId}/image/upload`,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": "multipart/form-data",
+                    "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
                 }
             }
         ).then(() => {
@@ -118,11 +119,12 @@ function PostImageDropzone({postId}) {
         const formData = new FormData();
         formData.append('file', file);
 
-        axios.post(`http://localhost:8020/api/v1/posts/${postId}/image/upload`,
+        axios.post(`http://localhost:8222/api/v1/posts/${postId}/image/upload`,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": "multipart/form-data",
+                    "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
                 }
             }
         ).then(() => {

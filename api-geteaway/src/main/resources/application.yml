@@ -1,16 +1,15 @@
 spring:
   application:
-    name: api-gateway-service
+    name: gateway-service
   profiles:
     active: dev
   servlet:
     multipart:
       max-file-size: 50MB
+
 springdoc:
   default-produces-media-type: application/json
 
 server:
   max-http-request-header-size: 16KB
-  servlet:
-    context-path: /api/v1/
   port: 8222

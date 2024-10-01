@@ -1,0 +1,37 @@
+.loginPage {
+  height: 93vh;
+}
+.loginPage form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.loginPage form input{
+    margin: 1rem;
+    padding: 0.5rem;
+    width: 20rem;
+    height: 2rem;
+    font-size: 1rem;
+    color: #537537;
+    border-radius: 0.5rem;
+    border: 1px solid #537537;
+}
+.loginPage form button{
+    margin: 1rem;
+    padding: 0.5rem;
+    width: 20rem;
+    border-radius: 0.5rem;
+    border: 1px solid #537537;
+    background-color: #537537;
+    color: white;
+}
+.loginPage form button:hover{
+    background-color: #3d542c;
+    color: #eeefea;
+}
+.loginPage form h1{
+    margin: 1rem;
+    color: #537537;
+}

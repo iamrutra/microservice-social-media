@@ -1,7 +1,6 @@
 package com.iamrutra.api_geteaway.controller;
 
 import com.iamrutra.api_geteaway.dto.LoginRequest;
-import com.iamrutra.api_geteaway.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.springframework.http.*;
@@ -17,8 +16,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "ApiGateway Controller", description = "APIs for gateway management")
 public class AuthController {
-
-    private final JwtService jwtService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
