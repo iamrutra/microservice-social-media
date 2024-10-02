@@ -8,6 +8,8 @@ import com.iamrutra.user_service.mapper.UserMapper;
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,8 +29,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStore fileStore;
 
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
+    public Page<User> findAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     public User saveUser(UserRequest request) {

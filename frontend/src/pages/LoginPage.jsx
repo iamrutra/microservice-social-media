@@ -19,8 +19,7 @@ const LoginPage = () => {
         if (response.ok) {
             const token = await response.text();
             localStorage.setItem('jwtToken', token);
-            console.log(localStorage.getItem('jwtToken'));
-            alert('Login successful!');
+            window.history.back();
         } else {
             const errorMessage = await response.text();
             alert(`Error: ${errorMessage}`);

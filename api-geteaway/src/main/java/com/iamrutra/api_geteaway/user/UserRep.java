@@ -1,10 +1,12 @@
 package com.iamrutra.api_geteaway.user;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 
 @Getter
+@Setter
 public class UserRep {
     private String id;
     private String username;

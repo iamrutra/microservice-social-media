@@ -1,25 +1,39 @@
 import axios from "axios";
 
+// Create an Axios instance with an interceptor
+const apiClient = axios.create({
+    baseURL: 'http://localhost:8222/api/v1/',
+});
+
+apiClient.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 401) {
+            window.location.href = 'http://localhost:3000/auth/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default class UserService {
     static async getUser(id) {
         const token = localStorage.getItem('jwtToken');
-        const response = await axios.get(`http://localhost:8222/api/v1/users/${id}`, {
-            method: 'GET',
+        const response = await apiClient.get(`users/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
         });
         return response.data;
     }
-    static async getAllUsers() {
+
+    static async getAllUsers(page = 0, size = 10) { // Accept page and size parameters
         const token = localStorage.getItem('jwtToken');
-        const response = await axios.get('http://localhost:8222/api/v1/users/getAll', {
-            method: 'GET',
+        const response = await apiClient.get('users/getAll', {
             headers: {
                 'Authorization': `Bearer ${token}`,
-            }
+            },
+            params: { page, size } // Send pagination parameters
         });
         return response.data;
     }
-};
-
+}

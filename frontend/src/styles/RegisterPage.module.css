@@ -1,0 +1,55 @@
+.registerPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 93vh;
+}
+
+.registerForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.inputGroup {
+    display: flex;
+    align-items: center;
+    margin: 1rem;
+}
+
+.inputGroup label {
+    flex: 1;
+    color: #537537;
+}
+
+.inputGroup input {
+    flex: 2;
+    padding: 0.5rem;
+    height: 2rem;
+    font-size: 1rem;
+    color: #537537;
+    border-radius: 0.5rem;
+    border: 1px solid #537537;
+}
+
+.registerForm button {
+    margin: 1rem;
+    padding: 0.5rem;
+    width: 20rem;
+    border-radius: 0.5rem;
+    border: 1px solid #537537;
+    background-color: #537537;
+    color: white;
+}
+
+.registerForm button:hover {
+    background-color: #3d542c;
+    color: #eeefea;
+}
+
+.registerForm h1 {
+    margin: 1rem;
+    color: #537537;
+    text-align: center;
+}
