@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../styles/LoginPage.module.css';
+import UserService from "../API/UserService";
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -19,6 +20,8 @@ const LoginPage = () => {
         if (response.ok) {
             const token = await response.text();
             localStorage.setItem('jwtToken', token);
+            localStorage.setItem('userId', UserService.getUserByUsername(username).id);
+            console.log(UserService.getUserByUsername(username).id);
             window.history.back();
         } else {
             const errorMessage = await response.text();

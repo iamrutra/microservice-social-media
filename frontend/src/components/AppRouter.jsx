@@ -12,6 +12,13 @@ const AppRouter = () => {
                     element={route.component}
                 />
             )}
+            {privateRoutes.map(route =>
+                <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.component}
+                />
+            )}
         </Routes>
     );
 };

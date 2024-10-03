@@ -36,4 +36,13 @@ export default class UserService {
         });
         return response.data;
     }
+
+    static async getUserByUsername(username) {
+        const token = localStorage.getItem('jwtToken');
+        const response = await apiClient.get(`users/username/${username}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+    }
 }
