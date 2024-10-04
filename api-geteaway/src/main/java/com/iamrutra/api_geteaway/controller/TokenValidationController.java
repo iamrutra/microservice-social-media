@@ -49,7 +49,7 @@ public class TokenValidationController {
         try {
             claimsSet = jwtProcessor.process(token, null);
             System.out.println("Claims: " + claimsSet.toJSONObject());
-            return ResponseEntity.ok(true);
+            return ResponseEntity.ok(claimsSet.toJSONObject());
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Invalid token: " + e.getMessage());
         }

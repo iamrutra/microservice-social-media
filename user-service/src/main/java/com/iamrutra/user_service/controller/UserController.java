@@ -65,10 +65,14 @@ public class UserController {
         return ResponseEntity.ok(userService.uploadUserImage(userId, file));
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("{userId}/image/download")
     public byte[] downloadUserImage(@PathVariable("userId") int userId) {
         return userService.downloadUserImage(userId);
+    }
+
+    @GetMapping("defaultPfp/image/download")
+    public byte[] downloadDefaultPfp() {
+        return userService.downloadDefaultPfp();
     }
 
 }

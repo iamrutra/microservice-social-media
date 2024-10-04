@@ -34,6 +34,7 @@ const RegisterPage = () => {
         if (response.ok) {
             const token = await response.text();
             localStorage.setItem('jwtToken', token);
+            window.history.back();
         } else {
             const errorMessage = await response.text();
             alert(`Error: ${errorMessage}`);

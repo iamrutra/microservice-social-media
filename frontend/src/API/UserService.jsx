@@ -28,6 +28,7 @@ export default class UserService {
 
     static async getAllUsers(page = 0, size = 10) { // Accept page and size parameters
         const token = localStorage.getItem('jwtToken');
+
         const response = await apiClient.get('users/getAll', {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -44,5 +45,6 @@ export default class UserService {
                 'Authorization': `Bearer ${token}`,
             },
         });
+        return response.data;
     }
 }

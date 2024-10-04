@@ -24,11 +24,10 @@
 .userProfile .posts{
     display: flex;
     flex-wrap: wrap;
-    margin-left: 30vh;
 }
 .userProfile .post{
     width: 70%;
-
+    margin: 10px 0;
     padding: 10px;
 }
 .postImage{
@@ -37,6 +36,29 @@
 .user {
     display: flex;
     flex-direction: column;
-    width: 50%;
-    margin-left: 20vh;
+}
+.textOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.user img:hover .textOverlay {
+    opacity: 1;
+}
+input, button{
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 1.1rem;
+    border: 1px solid #537537;
+    background-color: #537537;
+    color: white;
+}
+input:hover, button:hover{
+    cursor: pointer;
+    background-color: #3b4b2f;
 }

@@ -121,5 +121,14 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public byte[] downloadDefaultPfp() {
+        String path = String.format("%s/%s", BucketName.PROFILE_IMAGE.getBucketName(), "defaultPfp");
+        try {
+            return fileStore.download(path, "default-pfp.jpg");
+        } catch (AmazonS3Exception e) {
+            throw new IllegalStateException("Failed to download file from S3", e);
+        }
+    }
 }
 

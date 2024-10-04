@@ -20,8 +20,14 @@ const LoginPage = () => {
         if (response.ok) {
             const token = await response.text();
             localStorage.setItem('jwtToken', token);
-            localStorage.setItem('userId', UserService.getUserByUsername(username).id);
-            console.log(UserService.getUserByUsername(username).id);
+            try {
+                const user = await UserService.getUserByUsername(username);
+                localStorage.setItem('userId', user.id);
+                console.log(user);
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+
             window.history.back();
         } else {
             const errorMessage = await response.text();
