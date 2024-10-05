@@ -15,9 +15,10 @@ apiClient.interceptors.response.use(
     }
 );
 
+const token = localStorage.getItem('jwtToken');
+
 export default class UserService {
     static async getUser(id) {
-        const token = localStorage.getItem('jwtToken');
         const response = await apiClient.get(`users/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -27,8 +28,6 @@ export default class UserService {
     }
 
     static async getAllUsers(page = 0, size = 10) { // Accept page and size parameters
-        const token = localStorage.getItem('jwtToken');
-
         const response = await apiClient.get('users/getAll', {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -39,7 +38,6 @@ export default class UserService {
     }
 
     static async getUserByUsername(username) {
-        const token = localStorage.getItem('jwtToken');
         const response = await apiClient.get(`users/username/${username}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

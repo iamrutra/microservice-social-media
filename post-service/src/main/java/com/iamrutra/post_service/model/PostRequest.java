@@ -24,6 +24,7 @@ public record PostRequest (
         @NotEmpty(message = "Content cannot be empty")
         @NotBlank(message = "Content cannot be blank")
         Integer userId
+
 ){
 
 }

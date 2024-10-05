@@ -19,6 +19,7 @@ const LoginPage = () => {
 
         if (response.ok) {
             const token = await response.text();
+            localStorage.removeItem('jwtToken');
             localStorage.setItem('jwtToken', token);
             try {
                 const user = await UserService.getUserByUsername(username);
@@ -28,7 +29,9 @@ const LoginPage = () => {
                 console.error('Error fetching user:', error);
             }
 
-            window.history.back();
+            if(window.history.back() === 'http://localhost:3000/logout'){
+                window.location.href = 'http://localhost:3000/';
+            }
         } else {
             const errorMessage = await response.text();
             alert(`Error: ${errorMessage}`);

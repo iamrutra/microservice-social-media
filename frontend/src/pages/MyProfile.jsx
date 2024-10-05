@@ -1,8 +1,8 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {useParams} from "react-router-dom";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from "react-router-dom";
 import UserService from "../API/UserService";
 import styles from '../styles/MyProfile.module.css';
-import {useDropzone} from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import PostService from "../API/PostService";
 
@@ -10,15 +10,17 @@ const MyProfile = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedPostFile, setSelectedPostFile] = useState(null);
+    const [selectedProfileFile, setSelectedProfileFile] = useState(null);
+    const [postTitle, setPostTitle] = useState('');
+    const [postContent, setPostContent] = useState('');
     const userId = localStorage.getItem('userId');
 
     useEffect(() => {
         const fetchUser = async () => {
-            if(userId !== id) {
+            if (userId !== id) {
                 window.history.back();
-            }
-            else {
+            } else {
                 try {
                     const userData = await UserService.getUser(id);
                     setUser(userData);
@@ -31,7 +33,6 @@ const MyProfile = () => {
         const fetchPosts = async () => {
             try {
                 const postsData = await PostService.getPostsByUserId(id);
-                console.log(postsData);
                 setPosts(postsData.content);
             } catch (error) {
                 console.error('Ошибка при получении данных постов пользователя:', error);
@@ -56,56 +57,40 @@ const MyProfile = () => {
     `;
     }
 
-    function PostImageDropzone({ postId }) {
+    function PostImageDropzone({ onFileSelected }) {
         const onDrop = useCallback(acceptedFiles => {
-            setSelectedFile(acceptedFiles[0]);
-        }, []);
+            onFileSelected(acceptedFiles[0]);
+        }, [onFileSelected]);
 
         const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-        const handleUpload = () => {
-            if (selectedFile) {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-
-                axios.post(`http://localhost:8222/api/v1/posts/${postId}/image/upload`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": "multipart/form-data",
-                            "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
-                        }
-                    }
-                ).then(() => {
-                    console.log("file uploaded successfully");
-                }).catch(err => {
-                    console.log(err);
-                });
-            }
-        };
-
         return (
-            <div>
-                <div {...getRootProps()} className={styles.dropzone}>
-                    <input {...getInputProps()} />
-                    <p>Drag 'n' drop some files here, or click to select files</p>
+            <div {...getRootProps()} className={styles.dropzone}>
+                <input {...getInputProps()} />
+                <div className={styles.imageUpload}>
+                    <label htmlFor="file-input">
+                        <img src="https://cdn.icon-icons.com/icons2/1875/PNG/64/imagegallery_120168.png" />
+                    </label>
+                    <input id="file-input" type="file" />
                 </div>
-                {selectedFile && <button onClick={handleUpload}>Upload Post Image</button>}
             </div>
         );
     }
 
     function UserProfileDropzone({ userProfileId }) {
+        const [isFileSelected, setIsFileSelected] = useState(false);
+
         const onDrop = useCallback(acceptedFiles => {
-            setSelectedFile(acceptedFiles[0]);
+            setSelectedProfileFile(acceptedFiles[0]);
+            setIsFileSelected(true);
         }, []);
 
         const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
         const handleUpload = () => {
-            if (selectedFile) {
+            if (selectedProfileFile) {
                 const formData = new FormData();
-                formData.append('file', selectedFile);
+                formData.append('file', selectedProfileFile);
 
                 axios.post(`http://localhost:8222/api/v1/users/${userProfileId}/image/upload`,
                     formData,
@@ -116,32 +101,72 @@ const MyProfile = () => {
                         }
                     }
                 ).then(() => {
-                    console.log("file uploaded successfully");
+                    console.log("Файл загружен успешно");
+                    window.location.reload();
                 }).catch(err => {
-                    console.log(err);
+                    console.log("Ошибка при загрузке изображения профиля:", err);
                 });
             }
         };
 
         return (
             <div>
-                <div {...getRootProps()} className={styles.dropzone}>
-                    <input {...getInputProps()} />
-                    <input type={"button"} value={"Change image"}></input>
-                </div>
-                {selectedFile ? handleUpload() : null}
+                {!isFileSelected && (
+                    <div {...getRootProps()} className={styles.dropzone}>
+                        <input {...getInputProps()} />
+                        <button id="chIm">Change Image</button>
+                    </div>
+                )}
+                {selectedProfileFile && (
+                    <>
+                        <p>Выбран файл: {selectedProfileFile.name}</p>
+                        <button onClick={handleUpload}>Upload</button>
+                    </>
+                )}
             </div>
         );
     }
 
+    const handleCreatePost = async (event) => {
+        event.preventDefault();
+
+        try {
+            const newPost = await PostService.createPost({
+                title: postTitle,
+                content: postContent,
+                userId: id,
+            });
+
+            window.location.reload();
+
+            if (selectedPostFile) {
+                const formData = new FormData();
+                formData.append('file', selectedPostFile);
+
+                await axios.post(`http://localhost:8222/api/v1/posts/${newPost}/image/upload`, formData, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+            }
+        } catch (error) {
+            console.error('Error creating the post:', error.response);
+            if (error.response && error.response.status === 401) {
+                alert("Authentication error. Please log in again.");
+            }
+        }
+    };
+
+
+
     return (
         <div>
             {user ? (
-
                 <div className={styles.userProfile}>
-
                     <div className={styles.user}>
-                        {user && user.profileImageLink ? (
+                        {user.profileImageLink ? (
                             <img
                                 className={styles.profileImage}
                                 src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
@@ -162,30 +187,64 @@ const MyProfile = () => {
                     </div>
 
                     <div className={styles.posts}>
+                        <div>
+                            <h2>Мои посты</h2>
+                            <form onSubmit={handleCreatePost}>
+                                <div className={styles.headerForm}>
+                                    <input
+                                        type="text"
+                                        placeholder="Title"
+                                        value={postTitle}
+                                        onChange={e => setPostTitle(e.target.value)}
+                                    />
+                                </div>
+                                <div className={styles.contentForm}>
+                                <textarea
+                                    placeholder="Content"
+                                    rows={3}
+                                    value={postContent}
+                                    onChange={e => setPostContent(e.target.value)}
+                                />
+                                    <PostImageDropzone onFileSelected={setSelectedPostFile} />
+                                    {selectedPostFile && <p>Выбран файл: {selectedPostFile.name}</p>}
+                                    <button type="submit">Create post</button>
+                                </div>
+                            </form>
+                        </div>
                         {posts.map(post => (
                             <div key={post.id} className={styles.post}>
-                                {post.postImage ? (
+                                {post.postImage && (
                                     <img
                                         className={styles.postImage}
                                         src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`}
                                         alt="Post image"
                                     />
-                                ) : (
-                                    <PostImageDropzone postId={post.id} />
                                 )}
                                 <h3>{post.title}</h3>
                                 <p>{post.content}</p>
-                                <h5>Created at: {formatDate(post.createdAt)}</h5>
-                                <hr />
+                                <h5>Создано: {formatDate(post.createdAt)}</h5>
+                                <button onClick={() => {
+                                    PostService.deletePostById(post.id)
+                                        .then(() => {
+                                            window.location.reload();
+                                        })
+                                        .catch(err => {
+                                            console.error('Ошибка при удалении поста:', err);
+                                        });
+                                }}>Delete post
+                                </button>
+                                <hr/>
+
                             </div>
                         ))}
                     </div>
                 </div>
             ) : (
-                <p>Loading...</p>
+                <p>Загрузка...</p>
             )}
         </div>
     );
+
 };
 
 export default MyProfile;

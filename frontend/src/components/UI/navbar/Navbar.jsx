@@ -29,7 +29,10 @@ const Navbar = () => {
             <Link to={"/"}>Main</Link>
             <Link to={"/users"}>Users</Link>
             {isTokenValid ? (
-                <Link to={`/myProfile/${userId}`}>Profile</Link> // Динамически вставляем userId
+                <>
+                    <Link to={`/myProfile/${userId}`}>Profile</Link>
+                    <Link to={'/logout'}>Log out</Link>
+                </>
             ) : (
                 <>
                     <Link to={"/auth/login"}>Sign in</Link>

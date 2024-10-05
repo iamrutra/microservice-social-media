@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.apache.http.entity.ContentType.*;
@@ -38,7 +39,8 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
         user.setLocked(false);
-        user.setRoles(Collections.singletonList("ROLE_USER"));
+        user.setRoles(List.of("USER"));
+        user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
 

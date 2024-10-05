@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {useParams} from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { useParams } from "react-router-dom";
 import UserService from "../API/UserService";
 import styles from '../styles/UserProfile.module.css';
 import PostService from "../API/PostService";
@@ -9,6 +9,9 @@ const UserProfile = () => {
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
 
+    if (id === localStorage.getItem('userId')) {
+        window.location.href = `/myProfile/${id}`
+    }
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -47,15 +50,24 @@ const UserProfile = () => {
     `;
     }
 
-
     return (
-        <div>
+        <div className={styles.userProfile}>
             {user ? (
-                <div className={styles.userProfile}>
+                <>
                     <div className={styles.user}>
                         {user.profileImageLink ? (
-                            <img src={`http://localhost:8010/api/v1/users/${user.id}/image/download`} alt="User avatar" />
-                        ) : <img src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`} alt={"Default Picture For Profile"} />}
+                            <img
+                                className={styles.profileImage}
+                                src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
+                                alt="User avatar"
+                            />
+                        ) : (
+                            <img
+                                className={styles.profileImage}
+                                src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
+                                alt="Default Picture For Profile"
+                            />
+                        )}
                         <h2>Username: {user.username}</h2>
                         <h3>Full Name: {user.fullName}</h3>
                         <h3>Date of Birth: {user.dateOfBirth}</h3>
@@ -66,19 +78,24 @@ const UserProfile = () => {
                         {posts.length > 0 ? (
                             posts.map(post => (
                                 <div key={post.id} className={styles.post}>
-                                    {post.postImage ? (
-                                        <img className={styles.postImage}
-                                             src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`}
-                                             alt="Post image"/>
-                                    ) : null}
+                                    {post.postImage && (
+                                        <img
+                                            className={styles.postImage}
+                                            src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`}
+                                            alt="Post image"
+                                        />
+                                    )}
                                     <h3>{post.title}</h3>
                                     <p>{post.content}</p>
                                     <h5>Created at: {formatDate(post.createdAt)}</h5>
-                                    <hr/>
+                                    <hr />
                                 </div>
-                            ))) : <h3>No posts yet</h3>}
+                            ))
+                        ) : (
+                            <h3>No posts yet</h3>
+                        )}
                     </div>
-                </div>
+                </>
             ) : (
                 <p>Loading...</p>
             )}
