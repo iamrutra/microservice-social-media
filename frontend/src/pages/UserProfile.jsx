@@ -3,11 +3,13 @@ import { useParams } from "react-router-dom";
 import UserService from "../API/UserService";
 import styles from '../styles/UserProfile.module.css';
 import PostService from "../API/PostService";
+import GatewayService from "../API/GatewayService";
 
 const UserProfile = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
+    const userId = localStorage.getItem("userId")
 
     if (id === localStorage.getItem('userId')) {
         window.location.href = `/myProfile/${id}`
@@ -88,7 +90,17 @@ const UserProfile = () => {
                                     <h3>{post.title}</h3>
                                     <p>{post.content}</p>
                                     <h5>Created at: {formatDate(post.createdAt)}</h5>
-                                    <hr />
+                                    <div className={styles.statContent}>
+                                        <h5>{post.totalLikes}</h5>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            PostService.likePost(post.id, userId);
+                                        }}>
+                                            <button type="submit">Like it</button>
+                                        </form>
+                                        <h5>{post.totalComments}</h5>
+                                    </div>
+                                    <hr/>
                                 </div>
                             ))
                         ) : (

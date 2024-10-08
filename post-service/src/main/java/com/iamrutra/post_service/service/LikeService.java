@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +57,9 @@ public class LikeService {
         }
         Page<Like> likes = likeRepository.findAllByUserId(userId, pageable);
         return likeMapper.mapToListLikeResponse(likes, pageable);
+    }
+
+    public Optional<Like> findByUserIdAndPostId(int userId, int postId) {
+        return likeRepository.findByUserIdAndPostId(userId, postId);
     }
 }

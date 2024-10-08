@@ -7,6 +7,7 @@ const Navbar = () => {
     const [isTokenValid, setIsTokenValid] = useState(null);
     const userId = localStorage.getItem('userId'); // Получаем userId из localStorage
 
+
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         if (token) {
@@ -22,7 +23,8 @@ const Navbar = () => {
         } else {
             setIsTokenValid(false);
         }
-    }, []);
+    }, [localStorage.getItem('jwtToken')]);
+
 
     return (
         <nav>

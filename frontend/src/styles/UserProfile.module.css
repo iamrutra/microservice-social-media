@@ -56,3 +56,6 @@ hr {
 p {
     color: green;
 }
+.statContent{
+    display: flex;
+}

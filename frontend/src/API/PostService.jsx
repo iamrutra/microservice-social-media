@@ -29,4 +29,32 @@ export default class PostService {
         });
         return response.data;
     }
+    static async likePost(postId, userId) {
+        const response = await axios.post(
+            'http://localhost:8222/api/v1/likes/like',
+            {
+                postId: postId,
+                userId: userId
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
+        return response.data;
+    }
+    static async getLikesByUserId(userId) {
+        const response = await axios.get(
+            `http://localhost:8222/api/v1/likes/user/${userId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
+        return response.data;
+    }
 };

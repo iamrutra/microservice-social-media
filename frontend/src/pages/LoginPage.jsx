@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import styles from '../styles/LoginPage.module.css';
 import UserService from "../API/UserService";
+import GatewayService from "../API/GatewayService";
+import MyProfile from "./MyProfile";
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
+
 
     const handleLogin = async (event) => {
         event.preventDefault();
@@ -17,6 +21,7 @@ const LoginPage = () => {
             body: JSON.stringify({ username, password }),
         });
 
+
         if (response.ok) {
             const token = await response.text();
             localStorage.removeItem('jwtToken');
@@ -24,14 +29,11 @@ const LoginPage = () => {
             try {
                 const user = await UserService.getUserByUsername(username);
                 localStorage.setItem('userId', user.id);
-                console.log(user);
             } catch (error) {
                 console.error('Error fetching user:', error);
             }
+            window.location.href = `http://localhost:3000/myProfile/${localStorage.getItem('userId')}`
 
-            if(window.history.back() === 'http://localhost:3000/logout'){
-                window.location.href = 'http://localhost:3000/';
-            }
         } else {
             const errorMessage = await response.text();
             alert(`Error: ${errorMessage}`);

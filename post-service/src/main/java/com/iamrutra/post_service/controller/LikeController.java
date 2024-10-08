@@ -1,5 +1,6 @@
 package com.iamrutra.post_service.controller;
 
+import com.iamrutra.post_service.model.Like;
 import com.iamrutra.post_service.model.LikeRequest;
 import com.iamrutra.post_service.service.LikeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +51,11 @@ public class LikeController {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.ok(likeService.getLikesByUserId(userId, pageable));
+    }
+
+    @GetMapping("/findByUserIdAndPostId")
+    public Optional<Like> findByUserIdAndPostId(@RequestBody LikeRequest request){
+        return ResponseEntity.ok(likeService.findByUserIdAndPostId(request.getUserId(), request.getPostId())).getBody();
     }
 
 }

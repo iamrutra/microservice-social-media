@@ -12,8 +12,6 @@ import org.hibernate.validator.constraints.UniqueElements;
 import java.time.LocalDate;
 import java.util.List;
 
-@Setter
-@Getter
 public record UserRequest(
         Integer id,
         @NotEmpty(message = "Username cannot be empty")
