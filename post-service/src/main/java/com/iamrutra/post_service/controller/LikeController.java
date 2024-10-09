@@ -53,7 +53,7 @@ public class LikeController {
         return ResponseEntity.ok(likeService.getLikesByUserId(userId, pageable));
     }
 
-    @GetMapping("/findByUserIdAndPostId")
+    @PostMapping("/findByUserIdAndPostId")
     public Optional<Like> findByUserIdAndPostId(@RequestBody LikeRequest request){
         return ResponseEntity.ok(likeService.findByUserIdAndPostId(request.getUserId(), request.getPostId())).getBody();
     }

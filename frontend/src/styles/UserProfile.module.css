@@ -59,3 +59,8 @@ p {
 .statContent{
     display: flex;
 }
+.likeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+}

@@ -5,6 +5,9 @@ import styles from '../styles/MyProfile.module.css';
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import PostService from "../API/PostService";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as filledHeart } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as outlinedHeart } from '@fortawesome/free-regular-svg-icons';
 
 const MyProfile = () => {
     const { id } = useParams();
@@ -211,7 +214,7 @@ const MyProfile = () => {
                                 </div>
                             </form>
                         </div>
-                        {posts.map(post => (
+                        {posts.map((post, index) => (
                             <div key={post.id} className={styles.post}>
                                 {post.postImage && (
                                     <img
@@ -233,6 +236,43 @@ const MyProfile = () => {
                                         });
                                 }}>Delete post
                                 </button>
+                                <div className={styles.statContent}>
+                                    <h5>{post.totalLikes}</h5>
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        try {
+                                            const response = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+                                            let updatedPosts = [...posts];
+
+                                            if (response != null) {
+                                                // Unlike the post
+                                                console.log(response);
+                                                await PostService.updatePostLikeStatus(post.id, userId);
+                                                updatedPosts[index].totalLikes = post.totalLikes - 1;
+                                                updatedPosts[index].isLiked = false;
+                                            } else {
+                                                // Like the post
+                                                console.log(response);
+                                                await PostService.updatePostLikeStatus(post.id, userId);
+                                                updatedPosts[index].totalLikes = post.totalLikes + 1;
+                                                updatedPosts[index].isLiked = true;
+                                            }
+
+                                            setPosts(updatedPosts);
+                                        } catch (error) {
+                                            console.error('Error updating like status:', error);
+                                        }
+                                    }}>
+                                        <button type="submit" className={styles.likeButton}>
+                                            <FontAwesomeIcon
+                                                icon={post.isLiked ? filledHeart : outlinedHeart}
+                                                size="2x"
+                                                color={post.isLiked ? "red" : "black"}
+                                            />
+                                        </button>
+                                    </form>
+                                    <h5>{post.totalComments}</h5>
+                                </div>
                                 <hr/>
 
                             </div>

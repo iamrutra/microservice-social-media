@@ -8,6 +8,8 @@ import com.iamrutra.post_service.repository.LikeRepository;
 import com.iamrutra.post_service.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LikeService {
 
+    private static final Logger log = LoggerFactory.getLogger(LikeService.class);
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final LikeMapper likeMapper;
@@ -44,17 +47,11 @@ public class LikeService {
     }
 
     public Page<LikeResponse> getLikesByPostId(int postId, Pageable pageable) {
-        if (postRepository.findById(postId).isEmpty()) {
-            throw new RuntimeException("Post with id " + postId + " not found");
-        }
         Page<Like> likes = likeRepository.findAllByPostId(postId, pageable);
         return likeMapper.mapToListLikeResponse(likes, pageable);
     }
 
     public Page<LikeResponse> getLikesByUserId(int userId, Pageable pageable) {
-        if(likeRepository.findAllByUserId(userId, pageable).isEmpty()) {
-            throw new RuntimeException("User with id " + userId + " not found");
-        }
         Page<Like> likes = likeRepository.findAllByUserId(userId, pageable);
         return likeMapper.mapToListLikeResponse(likes, pageable);
     }

@@ -102,3 +102,12 @@ p {
 .contentForm button:hover {
     background-color: darkgreen;
 }
+.statContent{
+    display: flex;
+}
+.likeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+

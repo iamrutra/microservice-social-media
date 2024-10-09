@@ -4,6 +4,9 @@ import UserService from "../API/UserService";
 import styles from '../styles/UserProfile.module.css';
 import PostService from "../API/PostService";
 import GatewayService from "../API/GatewayService";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as filledHeart } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as outlinedHeart } from '@fortawesome/free-regular-svg-icons';
 
 const UserProfile = () => {
     const { id } = useParams();
@@ -78,7 +81,7 @@ const UserProfile = () => {
 
                     <div className={styles.posts}>
                         {posts.length > 0 ? (
-                            posts.map(post => (
+                            posts.map((post, index) => (
                                 <div key={post.id} className={styles.post}>
                                     {post.postImage && (
                                         <img
@@ -92,11 +95,38 @@ const UserProfile = () => {
                                     <h5>Created at: {formatDate(post.createdAt)}</h5>
                                     <div className={styles.statContent}>
                                         <h5>{post.totalLikes}</h5>
-                                        <form onSubmit={(e) => {
+                                        <form onSubmit={async (e) => {
                                             e.preventDefault();
-                                            PostService.likePost(post.id, userId);
+                                            try {
+                                                const response = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+                                                let updatedPosts = [...posts];
+
+                                                if (response != null) {
+                                                    // Unlike the post
+                                                    console.log(response);
+                                                    await PostService.updatePostLikeStatus(post.id, userId);
+                                                    updatedPosts[index].totalLikes = post.totalLikes - 1;
+                                                    updatedPosts[index].isLiked = false;
+                                                } else {
+                                                    // Like the post
+                                                    console.log(response);
+                                                    await PostService.updatePostLikeStatus(post.id, userId);
+                                                    updatedPosts[index].totalLikes = post.totalLikes + 1;
+                                                    updatedPosts[index].isLiked = true;
+                                                }
+
+                                                setPosts(updatedPosts);
+                                            } catch (error) {
+                                                console.error('Error updating like status:', error);
+                                            }
                                         }}>
-                                            <button type="submit">Like it</button>
+                                            <button type="submit" className={styles.likeButton}>
+                                                <FontAwesomeIcon
+                                                    icon={post.isLiked ? filledHeart : outlinedHeart}
+                                                    size="2x"
+                                                    color={post.isLiked ? "red" : "black"}
+                                                />
+                                            </button>
                                         </form>
                                         <h5>{post.totalComments}</h5>
                                     </div>
@@ -109,7 +139,7 @@ const UserProfile = () => {
                     </div>
                 </>
             ) : (
-                <p>Loading...</p>
+                <h3>Loading...</h3>
             )}
         </div>
     );

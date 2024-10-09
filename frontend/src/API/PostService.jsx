@@ -4,7 +4,6 @@ const token = localStorage.getItem('jwtToken');
 
 export default class PostService {
     static async getPostsByUserId(id) {
-        console.log(token);
         const response = await axios.get(`http://localhost:8222/api/v1/posts/user/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -29,7 +28,7 @@ export default class PostService {
         });
         return response.data;
     }
-    static async likePost(postId, userId) {
+    static async updatePostLikeStatus(postId, userId) {
         const response = await axios.post(
             'http://localhost:8222/api/v1/likes/like',
             {
@@ -45,14 +44,18 @@ export default class PostService {
         );
         return response.data;
     }
-    static async getLikesByUserId(userId) {
-        const response = await axios.get(
-            `http://localhost:8222/api/v1/likes/user/${userId}`,
+    static async findLikesByUserIdAndPostId(userId, postId) {
+        const response = await axios.post(
+            `http://localhost:8222/api/v1/likes/findByUserIdAndPostId`,
+            {  // Sending the data in the body
+                userId: userId,
+                postId: postId
+            },
             {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                },
+                }
             }
         );
         return response.data;
