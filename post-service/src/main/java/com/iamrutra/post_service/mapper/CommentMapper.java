@@ -28,6 +28,8 @@ public class CommentMapper {
                 .comment(comment.getComment())
                 .userId(comment.getUserId())
                 .postId(comment.getPost().getId())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
                 .build();
     }
 }

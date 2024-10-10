@@ -60,4 +60,29 @@ export default class PostService {
         );
         return response.data;
     }
+    static async deleteLikesByPostId(postId) {
+        const response = await axios.delete(
+            `http://localhost:8222/api/v1/likes/deleteByPost/${postId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return response.data;
+    }
+    static async getAllCommentsByPostId(postId) {
+        const response = await axios.get(
+            `http://localhost:8222/api/v1/comments/getAll/${postId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return response.data;
+    }
+
 };

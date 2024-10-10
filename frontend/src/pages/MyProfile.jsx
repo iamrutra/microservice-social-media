@@ -6,8 +6,8 @@ import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import PostService from "../API/PostService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as filledHeart } from '@fortawesome/free-solid-svg-icons';
-import { faHeart as outlinedHeart } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as filledHeart} from '@fortawesome/free-solid-svg-icons';
+import {faComment, faHeart as outlinedHeart} from '@fortawesome/free-regular-svg-icons';
 
 const MyProfile = () => {
     const { id } = useParams();
@@ -18,6 +18,9 @@ const MyProfile = () => {
     const [postTitle, setPostTitle] = useState('');
     const [postContent, setPostContent] = useState('');
     const userId = localStorage.getItem('userId');
+    const [commentsByPostId, setCommentsByPostId] = useState({});
+    const [commentators, setCommentators] = useState({});
+    const [openComments, setOpenComments] = useState({});
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -45,6 +48,49 @@ const MyProfile = () => {
         fetchUser();
         fetchPosts();
     }, [id]);
+
+    const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
+        try {
+            const commentsData = await PostService.getAllCommentsByPostId(postId);
+            console.log(commentsData);
+            setCommentsByPostId({
+                ...commentsByPostId,
+                [postId]: commentsData.content
+            });
+
+            const usersToFetch = commentsData.content.map(comment => comment.userId);
+            const uniqueUserIds = [...new Set(usersToFetch)];
+
+            const usersData = await Promise.all(uniqueUserIds.map(userId => UserService.getUser(userId)));
+            const newCommentators = {};
+            usersData.forEach(user => {
+                newCommentators[user.id] = user;
+            });
+
+            setCommentators(prevUsers => ({
+                ...prevUsers,
+                ...newCommentators
+            }));
+        } catch (error) {
+            console.error('Ошибка при получении комментариев:', error);
+        }
+    };
+
+    const toggleComments = (postId) => {
+        setOpenComments((prevOpenComments) => ({
+            ...prevOpenComments,
+            [postId]: !prevOpenComments[postId],
+        }));
+
+        if (!openComments[postId]) {
+            fetchComments(postId);
+        } else {
+            setCommentsByPostId((prevComments) => ({
+                ...prevComments,
+                [postId]: undefined,
+            }));
+        }
+    };
 
     function formatDate(date) {
         const d = new Date(date);
@@ -226,19 +272,9 @@ const MyProfile = () => {
                                 <h3>{post.title}</h3>
                                 <p>{post.content}</p>
                                 <h5>Создано: {formatDate(post.createdAt)}</h5>
-                                <button onClick={() => {
-                                    PostService.deletePostById(post.id)
-                                        .then(() => {
-                                            window.location.reload();
-                                        })
-                                        .catch(err => {
-                                            console.error('Ошибка при удалении поста:', err);
-                                        });
-                                }}>Delete post
-                                </button>
                                 <div className={styles.statContent}>
                                     <h5>{post.totalLikes}</h5>
-                                    <form onSubmit={async (e) => {
+                                    <form onSubmit={async e => {
                                         e.preventDefault();
                                         try {
                                             const response = await PostService.findLikesByUserIdAndPostId(userId, post.id);
@@ -272,7 +308,46 @@ const MyProfile = () => {
                                         </button>
                                     </form>
                                     <h5>{post.totalComments}</h5>
+                                    <button
+                                        type="button"
+                                        className={styles.commentButton}
+                                        onClick={() => toggleComments(post.id)}
+                                    >
+                                        <FontAwesomeIcon icon={faComment} size="2x"/>
+                                        {openComments[post.id] ? 'Hide Comments' : 'Show Comments'}
+                                    </button>
                                 </div>
+                                <div className={styles.comments}>
+                                    {commentsByPostId[post.id] ? (
+                                        commentsByPostId[post.id].map((comment) => (
+                                            <div key={comment.id} className={styles.comment}>
+                                                <div className={styles.commentator}>
+                                                    <img
+                                                        className={styles.commentatorImage}
+                                                        src={`http://localhost:8010/api/v1/users/${comment.userId}/image/download`}
+                                                        alt="User avatar"
+                                                    />
+                                                    <h5>{commentators[comment.userId]?.username || 'Загрузка...'}</h5>
+                                                </div>
+                                                <h5>{comment.comment}</h5>
+                                                <h5>{formatDate(comment.createdAt)}</h5>
+                                            </div>
+                                        ))
+                                    ) : null}
+                                </div>
+
+                                <button onClick={() => {
+                                    PostService.deleteLikesByPostId(post.id).then(() => {
+                                        PostService.deletePostById(post.id)
+                                            .then(() => {
+                                                window.location.reload();
+                                            })
+                                            .catch(err => {
+                                                console.error('Ошибка при удалении поста:', err);
+                                            });
+                                    })
+                                }}>Delete post
+                                </button>
                                 <hr/>
 
                             </div>

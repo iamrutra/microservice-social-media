@@ -4,6 +4,7 @@ import com.iamrutra.post_service.model.Like;
 import com.iamrutra.post_service.model.LikeRequest;
 import com.iamrutra.post_service.service.LikeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,9 +54,14 @@ public class LikeController {
         return ResponseEntity.ok(likeService.getLikesByUserId(userId, pageable));
     }
 
+
     @PostMapping("/findByUserIdAndPostId")
     public Optional<Like> findByUserIdAndPostId(@RequestBody LikeRequest request){
         return ResponseEntity.ok(likeService.findByUserIdAndPostId(request.getUserId(), request.getPostId())).getBody();
     }
 
+    @DeleteMapping("/deleteByPost/{postId}")
+    public ResponseEntity<?> deleteByPostId(@PathVariable int postId){
+        return likeService.deleteByPostId(postId);
+    }
 }

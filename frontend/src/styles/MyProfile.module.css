@@ -110,4 +110,18 @@ p {
     border: none;
     cursor: pointer;
 }
-
+.commentButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.commentatorImage {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.commentator{
+    display: flex;
+    align-items: center;
+}
