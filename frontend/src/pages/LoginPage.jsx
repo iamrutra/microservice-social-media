@@ -25,6 +25,7 @@ const LoginPage = () => {
         if (response.ok) {
             const token = await response.text();
             localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userId');
             localStorage.setItem('jwtToken', token);
             try {
                 const user = await UserService.getUserByUsername(username);

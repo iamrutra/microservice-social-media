@@ -3,7 +3,7 @@ import axios from "axios";
 const token = localStorage.getItem('jwtToken');
 
 export default class PostService {
-    static async getPostsByUserId(id) {
+    static async getPostsByUserId(id, page = 0, size = 5) {
         const response = await axios.get(`http://localhost:8222/api/v1/posts/user/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -84,5 +84,57 @@ export default class PostService {
         );
         return response.data;
     }
+    static async createComment(comment, postId, userId) {
+        const response = await axios.post(
+            `http://localhost:8222/api/v1/comments/create`,
+            {
+                comment: comment,
+                postId: postId,
+                userId: userId
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return response.data;
+    }
 
+    // deleteCommentByIdAndPostId
+    static async deleteCommentByIdAndPostId(commentId, postId) {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8222/api/v1/comments/deleteByIdAndPostId?commentId=${commentId}&postId=${postId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting comment:', error.response);
+        }
+    }
+
+    // deleteCommentByIdAndUserIdAndPostId
+    static async deleteCommentByIdAndUserIdAndPostId(commentId, userId, postId) {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8222/api/v1/comments/deleteByIdAndUserIdAndPostId?commentId=${commentId}&userId=${userId}&postId=${postId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting comment:', error.response);
+        }
+    }
 };

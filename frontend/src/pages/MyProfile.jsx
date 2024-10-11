@@ -307,17 +307,41 @@ const MyProfile = () => {
                                             />
                                         </button>
                                     </form>
-                                    <h5>{post.totalComments}</h5>
+                                    <h5 className="totalCommets">{post.totalComments}</h5>
                                     <button
                                         type="button"
                                         className={styles.commentButton}
                                         onClick={() => toggleComments(post.id)}
                                     >
-                                        <FontAwesomeIcon icon={faComment} size="2x"/>
-                                        {openComments[post.id] ? 'Hide Comments' : 'Show Comments'}
+                                        <FontAwesomeIcon icon={faComment} size="2x" color="black"/>
                                     </button>
                                 </div>
                                 <div className={styles.comments}>
+                                    {
+                                        openComments[post.id] ?
+                                            <form onSubmit={async (e) => {
+                                                e.preventDefault();
+                                                const comment = e.target[0].value;
+                                                const totalComments = document.getElementsByClassName('totalCommets');
+                                                totalComments[index].innerText = parseInt(totalComments[index].innerText) + 1;
+                                                console.log(comment);
+                                                e.target[0].value = '';
+                                                try {
+                                                    await PostService.createComment(
+                                                        comment,
+                                                        post.id,
+                                                        userId
+                                                    );
+                                                    fetchComments(post.id);
+                                                } catch (error) {
+                                                    console.error('Error creating comment:', error);
+                                                }
+                                            }}>
+                                                <input type="text" placeholder="Enter your comment"></input>
+                                                <button type="submit">Send</button>
+                                            </form>
+                                            : null
+                                    }
                                     {commentsByPostId[post.id] ? (
                                         commentsByPostId[post.id].map((comment) => (
                                             <div key={comment.id} className={styles.comment}>
@@ -330,7 +354,15 @@ const MyProfile = () => {
                                                     <h5>{commentators[comment.userId]?.username || 'Загрузка...'}</h5>
                                                 </div>
                                                 <h5>{comment.comment}</h5>
-                                                <h5>{formatDate(comment.createdAt)}</h5>
+                                                <h5>Created at: {formatDate(comment.createdAt)}</h5>
+                                                <button onClick={async () => {
+                                                    const totalComments = document.getElementsByClassName('totalCommets');
+                                                    totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
+                                                    console.log(post.id);
+                                                    await PostService.deleteCommentByIdAndPostId(comment.id, post.id);
+                                                    fetchComments(post.id);
+                                                }}>Delete comment</button>
+                                                <hr></hr>
                                             </div>
                                         ))
                                     ) : null}

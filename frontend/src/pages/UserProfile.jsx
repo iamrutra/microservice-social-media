@@ -6,13 +6,18 @@ import PostService from "../API/PostService";
 import GatewayService from "../API/GatewayService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as filledHeart } from '@fortawesome/free-solid-svg-icons';
-import { faHeart as outlinedHeart } from '@fortawesome/free-regular-svg-icons';
+import {faComment, faHeart as outlinedHeart} from '@fortawesome/free-regular-svg-icons';
+import {parse} from "@fortawesome/fontawesome-svg-core";
 
 const UserProfile = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
-    const userId = localStorage.getItem("userId")
+    const userId = localStorage.getItem("userId");
+    const [commentsByPostId, setCommentsByPostId] = useState({});
+    const [commentators, setCommentators] = useState({});
+    const [openComments, setOpenComments] = useState({});
+
 
     if (id === localStorage.getItem('userId')) {
         window.location.href = `/myProfile/${id}`
@@ -40,6 +45,49 @@ const UserProfile = () => {
         fetchUser();
         fetchPosts();
     }, [id]);
+
+    const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
+        try {
+            const commentsData = await PostService.getAllCommentsByPostId(postId);
+            console.log(commentsData);
+            setCommentsByPostId({
+                ...commentsByPostId,
+                [postId]: commentsData.content
+            });
+
+            const usersToFetch = commentsData.content.map(comment => comment.userId);
+            const uniqueUserIds = [...new Set(usersToFetch)];
+
+            const usersData = await Promise.all(uniqueUserIds.map(userId => UserService.getUser(userId)));
+            const newCommentators = {};
+            usersData.forEach(user => {
+                newCommentators[user.id] = user;
+            });
+
+            setCommentators(prevUsers => ({
+                ...prevUsers,
+                ...newCommentators
+            }));
+        } catch (error) {
+            console.error('Ошибка при получении комментариев:', error);
+        }
+    };
+
+    const toggleComments = (postId) => {
+        setOpenComments((prevOpenComments) => ({
+            ...prevOpenComments,
+            [postId]: !prevOpenComments[postId],
+        }));
+
+        if (!openComments[postId]) {
+            fetchComments(postId);
+        } else {
+            setCommentsByPostId((prevComments) => ({
+                ...prevComments,
+                [postId]: undefined,
+            }));
+        }
+    };
 
     function formatDate(date) {
         const d = new Date(date);
@@ -128,7 +176,66 @@ const UserProfile = () => {
                                                 />
                                             </button>
                                         </form>
-                                        <h5>{post.totalComments}</h5>
+                                        <h5 className="totalCommets">{post.totalComments}</h5>
+                                        <button
+                                            type="button"
+                                            className={styles.commentButton}
+                                            onClick={() => toggleComments(post.id)}
+                                        >
+                                            <FontAwesomeIcon icon={faComment} size="2x"/>
+                                        </button>
+                                    </div>
+                                    <div className={styles.comments}>
+                                        {
+                                            openComments[post.id] ?
+                                                <form onSubmit={async (e) => {
+                                                    e.preventDefault();
+                                                    const comment = e.target[0].value;
+                                                    const totalComments = document.getElementsByClassName('totalCommets');
+                                                    totalComments[index].innerText = parseInt(totalComments[index].innerText) + 1;
+                                                    console.log(comment);
+                                                    e.target[0].value = '';
+                                                    try {
+                                                        await PostService.createComment(
+                                                            comment,
+                                                            post.id,
+                                                            userId
+                                                        );
+                                                        fetchComments(post.id);
+                                                    } catch (error) {
+                                                        console.error('Error creating comment:', error);
+                                                    }
+                                                }}>
+                                                    <input type="text" placeholder="Enter your comment"></input>
+                                                    <button type="submit">Send</button>
+                                                </form>
+                                                : null
+                                        }
+                                        {commentsByPostId[post.id] ? (
+                                            commentsByPostId[post.id].map((comment) => (
+                                                <div key={comment.id} className={styles.comment}>
+                                                    <div className={styles.commentator}>
+                                                        <img
+                                                            className={styles.commentatorImage}
+                                                            src={`http://localhost:8010/api/v1/users/${comment.userId}/image/download`}
+                                                            alt="User avatar"
+                                                        />
+                                                        <h5>{commentators[comment.userId]?.username || 'Загрузка...'}</h5>
+                                                    </div>
+                                                    <h5>{comment.comment}</h5>
+                                                    <h5>Created at: {formatDate(comment.createdAt)}</h5>
+                                                    <button onClick={async () => {
+                                                        const totalComments = document.getElementsByClassName('totalCommets');
+                                                        totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
+                                                        console.log(post.id);
+                                                        await PostService.deleteCommentByIdAndUserIdAndPostId(comment.id, parseInt(userId), post.id);
+                                                        fetchComments(post.id);
+                                                    }}>Delete comment
+                                                    </button>
+                                                    <hr></hr>
+                                                </div>
+                                            ))
+                                        ) : null}
                                     </div>
                                     <hr/>
                                 </div>

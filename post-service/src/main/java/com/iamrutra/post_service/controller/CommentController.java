@@ -46,8 +46,37 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getAllCommentsByPostId(postId, pageable));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable Integer id) {
-        return ResponseEntity.ok(commentService.deleteComment(id));
+    @PutMapping("/updateById")
+    public ResponseEntity<?> updateComment(
+            @RequestBody Integer id,
+            @RequestBody String comment
+    ) {
+        return ResponseEntity.ok(commentService.updateCommentById(id, comment));
     }
+
+    @DeleteMapping("/deleteAllByPostId")
+    public ResponseEntity<String> deleteAllCommentsByPostId(@RequestBody Integer postId) {
+        return ResponseEntity.ok(commentService.deleteAllCommentsByPostId(postId));
+    }
+
+    @DeleteMapping("/deleteByIdAndPostId")
+    public ResponseEntity<String> deleteCommentByIdAndPostId(
+            @RequestParam Integer commentId,
+            @RequestParam Integer postId
+    ) {
+        commentService.deleteCommentByIdAndPostId(commentId, postId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/deleteByIdAndUserIdAndPostId")
+    public ResponseEntity<?> deleteCommentByIdAndUserIdAndPostId(
+            @RequestParam Integer commentId,
+            @RequestParam Integer userId,
+            @RequestParam Integer postId
+    ) {
+        return ResponseEntity.ok(commentService.deleteCommentByIdAndUserIdAndPostId(commentId, userId, postId));
+    }
+
+
+
 }

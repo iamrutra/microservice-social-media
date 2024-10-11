@@ -13,6 +13,7 @@ import com.iamrutra.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -94,5 +95,49 @@ public class CommentService {
         } else {
             throw new RuntimeException("Comment not found");
         }
+    }
+
+    public ResponseEntity<?> updateCommentById(Integer id, String comment) {
+        Comment comment1 = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        comment1.setComment(comment);
+        commentRepository.save(comment1);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> deleteCommentByIdAndPostId(Integer id, Integer postId) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setTotalComments(post.getTotalComments() - 1);
+        postRepository.save(post);
+        commentRepository.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> deleteCommentByIdAndUserIdAndPostId(Integer id, Integer userId, Integer postId) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        if(comment.getUserId() == userId) {
+            post.setTotalComments(post.getTotalComments() - 1);
+            postRepository.save(post);
+            commentRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public String deleteAllCommentsByPostId(Integer postId) {
+        List<Comment> comments = commentRepository.findAll();
+        for(Comment comment: comments) {
+            if(comment.getPost().getId() == postId) {
+                commentRepository.deleteById(comment.getId());
+            }
+        }
+        return "All comments deleted successfully";
     }
 }
