@@ -3,8 +3,8 @@ import axios from "axios";
 const token = localStorage.getItem('jwtToken');
 
 export default class PostService {
-    static async getPostsByUserId(id, page = 0, size = 5) {
-        const response = await axios.get(`http://localhost:8222/api/v1/posts/user/${id}`, {
+    static async getPostsByUserId(id, page = 0, size = 10) {
+        const response = await axios.get(`http://localhost:8222/api/v1/posts/user/${id}?page=${page}&size=${size}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },

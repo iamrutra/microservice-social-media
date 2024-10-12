@@ -8,19 +8,23 @@ import PostService from "../API/PostService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as filledHeart} from '@fortawesome/free-solid-svg-icons';
 import {faComment, faHeart as outlinedHeart} from '@fortawesome/free-regular-svg-icons';
+import UserProfileDropzone from "../components/UserProfileDropzone";
+import PostImageDropzone from "../components/PostImageDropzone";
 
 const MyProfile = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
     const [selectedPostFile, setSelectedPostFile] = useState(null);
-    const [selectedProfileFile, setSelectedProfileFile] = useState(null);
     const [postTitle, setPostTitle] = useState('');
     const [postContent, setPostContent] = useState('');
     const userId = localStorage.getItem('userId');
     const [commentsByPostId, setCommentsByPostId] = useState({});
     const [commentators, setCommentators] = useState({});
     const [openComments, setOpenComments] = useState({});
+    const [commentatorImages, setCommentatorImages] = useState({});
+    const [page, setPage] = useState(0); // текущая страница
+    const [hasMorePosts, setHasMorePosts] = useState(true); // есть ли ещё посты
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -38,16 +42,26 @@ const MyProfile = () => {
 
         const fetchPosts = async () => {
             try {
-                const postsData = await PostService.getPostsByUserId(id);
-                setPosts(postsData.content);
+                const postsData = await PostService.getPostsByUserId(id, page, 10);
+                if (postsData.content.length === 0) {
+                    setHasMorePosts(false);
+                }
+
+                setPosts(prevPosts => {
+                    const newPosts = postsData.content.filter(post =>
+                        !prevPosts.some(prevPost => prevPost.id === post.id)
+                    );
+                    return [...prevPosts, ...newPosts];
+                });
             } catch (error) {
                 console.error('Ошибка при получении данных постов пользователя:', error);
             }
         };
 
+
         fetchUser();
         fetchPosts();
-    }, [id]);
+    }, [page, id]);
 
     const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
         try {
@@ -72,9 +86,49 @@ const MyProfile = () => {
                 ...newCommentators
             }));
         } catch (error) {
-            console.error('Ошибка при получении комментариев:', error);
+            console.error('Failed fetch comments:', error);
         }
     };
+
+    const handleScroll = useCallback(() => {
+        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
+            setPage(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
+        }
+    }, [hasMorePosts]);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
+
+    const fetchCommentatorImage = async (userId) => {
+        try {
+            const user = await UserService.getUser(userId);
+            if (user.profileImageLink) {
+                return `http://localhost:8010/api/v1/users/${userId}/image/download`;
+            }
+            return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
+        } catch (error) {
+            console.error('Ошибка при загрузке изображения комментатора:', error);
+            return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
+        }
+    };
+
+    useEffect(() => {
+        const loadCommentatorImages = async () => {
+            const newCommentatorImages = {};
+            for (const userId of Object.keys(commentators)) {
+                const imageUrl = await fetchCommentatorImage(userId);
+                newCommentatorImages[userId] = imageUrl;
+            }
+            setCommentatorImages(newCommentatorImages);
+        };
+
+        if (Object.keys(commentators).length > 0) {
+            loadCommentatorImages();
+        }
+    }, [commentators]);
 
     const toggleComments = (postId) => {
         setOpenComments((prevOpenComments) => ({
@@ -106,75 +160,9 @@ const MyProfile = () => {
     `;
     }
 
-    function PostImageDropzone({ onFileSelected }) {
-        const onDrop = useCallback(acceptedFiles => {
-            onFileSelected(acceptedFiles[0]);
-        }, [onFileSelected]);
 
-        const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-        return (
-            <div {...getRootProps()} className={styles.dropzone}>
-                <input {...getInputProps()} />
-                <div className={styles.imageUpload}>
-                    <label htmlFor="file-input">
-                        <img src="https://cdn.icon-icons.com/icons2/1875/PNG/64/imagegallery_120168.png" />
-                    </label>
-                    <input id="file-input" type="file" />
-                </div>
-            </div>
-        );
-    }
 
-    function UserProfileDropzone({ userProfileId }) {
-        const [isFileSelected, setIsFileSelected] = useState(false);
-
-        const onDrop = useCallback(acceptedFiles => {
-            setSelectedProfileFile(acceptedFiles[0]);
-            setIsFileSelected(true);
-        }, []);
-
-        const { getRootProps, getInputProps } = useDropzone({ onDrop });
-
-        const handleUpload = () => {
-            if (selectedProfileFile) {
-                const formData = new FormData();
-                formData.append('file', selectedProfileFile);
-
-                axios.post(`http://localhost:8222/api/v1/users/${userProfileId}/image/upload`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": "multipart/form-data",
-                            "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
-                        }
-                    }
-                ).then(() => {
-                    console.log("Файл загружен успешно");
-                    window.location.reload();
-                }).catch(err => {
-                    console.log("Ошибка при загрузке изображения профиля:", err);
-                });
-            }
-        };
-
-        return (
-            <div>
-                {!isFileSelected && (
-                    <div {...getRootProps()} className={styles.dropzone}>
-                        <input {...getInputProps()} />
-                        <button id="chIm">Change Image</button>
-                    </div>
-                )}
-                {selectedProfileFile && (
-                    <>
-                        <p>Выбран файл: {selectedProfileFile.name}</p>
-                        <button onClick={handleUpload}>Upload</button>
-                    </>
-                )}
-            </div>
-        );
-    }
 
     const handleCreatePost = async (event) => {
         event.preventDefault();
@@ -237,7 +225,7 @@ const MyProfile = () => {
 
                     <div className={styles.posts}>
                         <div>
-                            <h2>Мои посты</h2>
+                            <h2>My Posts</h2>
                             <form onSubmit={handleCreatePost}>
                                 <div className={styles.headerForm}>
                                     <input
@@ -348,12 +336,13 @@ const MyProfile = () => {
                                                 <div className={styles.commentator}>
                                                     <img
                                                         className={styles.commentatorImage}
-                                                        src={`http://localhost:8010/api/v1/users/${comment.userId}/image/download`}
+                                                        src={commentatorImages[comment.userId] || 'loading_image_placeholder_url'}
                                                         alt="User avatar"
                                                     />
-                                                    <h5>{commentators[comment.userId]?.username || 'Загрузка...'}</h5>
+                                                    <h4>{commentators[comment.userId]?.username || 'Загрузка...'}</h4>
+                                                    <h5>{comment.comment}</h5>
                                                 </div>
-                                                <h5>{comment.comment}</h5>
+
                                                 <h5>Created at: {formatDate(comment.createdAt)}</h5>
                                                 <button onClick={async () => {
                                                     const totalComments = document.getElementsByClassName('totalCommets');
@@ -384,7 +373,9 @@ const MyProfile = () => {
 
                             </div>
                         ))}
+                        {!hasMorePosts && <p>No more posts to load</p>}
                     </div>
+
                 </div>
             ) : (
                 <p>Загрузка...</p>

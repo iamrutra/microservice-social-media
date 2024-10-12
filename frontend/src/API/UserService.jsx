@@ -37,7 +37,7 @@ export default class UserService {
         return response.data;
     }
 
-    static async getUserByUsername(username) {
+    static async getUserByUsername(username, token) {
         const response = await apiClient.get(`users/username/${username}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

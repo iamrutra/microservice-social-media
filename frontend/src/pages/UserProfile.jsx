@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { useParams } from "react-router-dom";
 import UserService from "../API/UserService";
 import styles from '../styles/UserProfile.module.css';
@@ -17,6 +17,9 @@ const UserProfile = () => {
     const [commentsByPostId, setCommentsByPostId] = useState({});
     const [commentators, setCommentators] = useState({});
     const [openComments, setOpenComments] = useState({});
+    const [commentatorImages, setCommentatorImages] = useState({});
+    const [page, setPage] = useState(0);
+    const [hasMorePosts, setHasMorePosts] = useState(true)
 
 
     if (id === localStorage.getItem('userId')) {
@@ -34,9 +37,17 @@ const UserProfile = () => {
 
         const fetchPosts = async () => {
             try {
-                const postsData = await PostService.getPostsByUserId(id);
-                console.log(postsData);
-                setPosts(postsData.content);
+                const postsData = await PostService.getPostsByUserId(id, page, 10);
+                if (postsData.content.length === 0) {
+                    setHasMorePosts(false);
+                }
+
+                setPosts(prevPosts => {
+                    const newPosts = postsData.content.filter(post =>
+                        !prevPosts.some(prevPost => prevPost.id === post.id)
+                    );
+                    return [...prevPosts, ...newPosts];
+                });
             } catch (error) {
                 console.error('Ошибка при получении данных постов пользователя:', error);
             }
@@ -44,7 +55,7 @@ const UserProfile = () => {
 
         fetchUser();
         fetchPosts();
-    }, [id]);
+    }, [page, id]);
 
     const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
         try {
@@ -72,6 +83,45 @@ const UserProfile = () => {
             console.error('Ошибка при получении комментариев:', error);
         }
     };
+
+    const fetchCommentatorImage = async (userId) => {
+        try {
+            const user = await UserService.getUser(userId);
+            if (user.profileImageLink) {
+                return `http://localhost:8010/api/v1/users/${userId}/image/download`;
+            }
+            return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
+        } catch (error) {
+            console.error('Ошибка при загрузке изображения комментатора:', error);
+            return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
+        }
+    };
+
+    const handleScroll = useCallback(() => {
+        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
+            setPage(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
+        }
+    }, [hasMorePosts]);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
+    useEffect(() => {
+        const loadCommentatorImages = async () => {
+            const newCommentatorImages = {};
+            for (const userId of Object.keys(commentators)) {
+                const imageUrl = await fetchCommentatorImage(userId);
+                newCommentatorImages[userId] = imageUrl;
+            }
+            setCommentatorImages(newCommentatorImages);
+        };
+
+        if (Object.keys(commentators).length > 0) {
+            loadCommentatorImages();
+        }
+    }, [commentators]);
 
     const toggleComments = (postId) => {
         setOpenComments((prevOpenComments) => ({
@@ -128,6 +178,7 @@ const UserProfile = () => {
                     </div>
 
                     <div className={styles.posts}>
+                        <h2>{user.username}'s Posts</h2>
                         {posts.length > 0 ? (
                             posts.map((post, index) => (
                                 <div key={post.id} className={styles.post}>
@@ -217,12 +268,13 @@ const UserProfile = () => {
                                                     <div className={styles.commentator}>
                                                         <img
                                                             className={styles.commentatorImage}
-                                                            src={`http://localhost:8010/api/v1/users/${comment.userId}/image/download`}
+                                                            src={commentatorImages[comment.userId] || 'loading_image_placeholder_url'}
                                                             alt="User avatar"
                                                         />
-                                                        <h5>{commentators[comment.userId]?.username || 'Загрузка...'}</h5>
+                                                        <h4>{commentators[comment.userId]?.username || 'Загрузка...'}</h4>
+                                                        <h5>{comment.comment}</h5>
                                                     </div>
-                                                    <h5>{comment.comment}</h5>
+
                                                     <h5>Created at: {formatDate(comment.createdAt)}</h5>
                                                     <button onClick={async () => {
                                                         const totalComments = document.getElementsByClassName('totalCommets');

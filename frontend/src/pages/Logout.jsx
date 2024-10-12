@@ -2,6 +2,7 @@ import React from 'react';
 
 const handleLogout = () => {
     localStorage.removeItem("jwtToken");
+    localStorage.removeItem("userId");
 }
 const Logout = () => {
     return (

@@ -24,16 +24,17 @@ const LoginPage = () => {
 
         if (response.ok) {
             const token = await response.text();
-            localStorage.removeItem('jwtToken');
-            localStorage.removeItem('userId');
             localStorage.setItem('jwtToken', token);
+
             try {
-                const user = await UserService.getUserByUsername(username);
+                const user = await UserService.getUserByUsername(username, token);
+                console.log(user);
                 localStorage.setItem('userId', user.id);
+                window.location.href = `http://localhost:3000/myProfile/${user.id}`
             } catch (error) {
                 console.error('Error fetching user:', error);
             }
-            window.location.href = `http://localhost:3000/myProfile/${localStorage.getItem('userId')}`
+
 
         } else {
             const errorMessage = await response.text();
