@@ -29,14 +29,16 @@ const Navbar = () => {
     return (
         <nav>
             <Link to={"/"}>Main</Link>
-            <Link to={"/users"}>Users</Link>
             {isTokenValid ? (
                 <>
+                    <Link to={"/feeds"}>Feeds</Link>
+                    <Link to={"/users"}>Users</Link>
                     <Link to={`/myProfile/${userId}`}>Profile</Link>
                     <Link to={'/logout'}>Log out</Link>
                 </>
             ) : (
                 <>
+                    <Link to={"/users"}>Users</Link>
                     <Link to={"/auth/login"}>Sign in</Link>
                     <Link to={"/auth/register"}>Sign up</Link>
                 </>

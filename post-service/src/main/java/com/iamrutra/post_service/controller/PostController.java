@@ -70,4 +70,16 @@ public class PostController {
         return ResponseEntity.ok(postService.downloadPostImage(postId));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<Page<Post>> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
+    ) {
+        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(postService.getAllPosts(pageable));
+    }
+
 }

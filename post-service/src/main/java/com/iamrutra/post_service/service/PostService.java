@@ -103,5 +103,9 @@ public class PostService {
             throw new RuntimeException("Cannot upload empty file [" + file.getSize() + "]");
         }
     }
+
+    public Page<Post> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(pageable);
+    }
 }
 

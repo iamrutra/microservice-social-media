@@ -10,6 +10,8 @@
         <option value="$PROJECT_DIR$/notification-service/pom.xml" />
         <option value="$PROJECT_DIR$/api-geteaway/pom.xml" />
         <option value="$PROJECT_DIR$/eureka/pom.xml" />
+        <option value="$PROJECT_DIR$/feed-service/pom.xml" />
+        <option value="$PROJECT_DIR$/feeds-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
