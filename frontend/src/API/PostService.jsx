@@ -72,9 +72,9 @@ export default class PostService {
         );
         return response.data;
     }
-    static async getAllCommentsByPostId(postId) {
+    static async getAllCommentsByPostId(postId, size = 5, page = 0) {
         const response = await axios.get(
-            `http://localhost:8222/api/v1/comments/getAll/${postId}`,
+            `http://localhost:8222/api/v1/comments/getAll/${postId}?size=${size}&page=${page}`,
             {
                 headers: {
                     'Authorization': `Bearer ${token}`,

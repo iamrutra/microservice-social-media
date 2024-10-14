@@ -23,8 +23,11 @@ const MyProfile = () => {
     const [commentators, setCommentators] = useState({});
     const [openComments, setOpenComments] = useState({});
     const [commentatorImages, setCommentatorImages] = useState({});
-    const [page, setPage] = useState(0); // текущая страница
-    const [hasMorePosts, setHasMorePosts] = useState(true); // есть ли ещё посты
+    const [pagePosts, setPagePosts] = useState(0);
+    const [pageComments, setPageComments] = useState(0);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [isFirstComments, setIsFirstComments] = useState(true)
+    const [isLastComments, setIsLastComments] = useState(false)
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -42,7 +45,7 @@ const MyProfile = () => {
 
         const fetchPosts = async () => {
             try {
-                const postsData = await PostService.getPostsByUserId(id, page, 10);
+                const postsData = await PostService.getPostsByUserId(id, pagePosts, 10);
                 if (postsData.content.length === 0) {
                     setHasMorePosts(false);
                 }
@@ -61,11 +64,26 @@ const MyProfile = () => {
 
         fetchUser();
         fetchPosts();
-    }, [page, id]);
+    }, [pagePosts, id]);
 
     const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
         try {
-            const commentsData = await PostService.getAllCommentsByPostId(postId);
+            const commentsData = await PostService.getAllCommentsByPostId(postId, 5, pageComments);
+            if(commentsData.content.length === 0){
+                handlePreviousCommentsPage();
+            }
+            if (commentsData.first === true){
+                setIsFirstComments(true)
+            } else {
+                setIsFirstComments(false)
+            }
+            console.log("isFirst " + isFirstComments)
+            if (commentsData.last === true){
+                setIsLastComments(true)
+            } else {
+                setIsLastComments(false)
+            }
+            console.log("isLast " + isLastComments)
             console.log(commentsData);
             setCommentsByPostId({
                 ...commentsByPostId,
@@ -89,10 +107,17 @@ const MyProfile = () => {
             console.error('Failed fetch comments:', error);
         }
     };
+    useEffect(() => {
+        const postIdsWithOpenComments = Object.keys(openComments).filter(postId => openComments[postId]);
+
+        postIdsWithOpenComments.forEach(postId => {
+            fetchComments(postId);
+        });
+    }, [pageComments, openComments]);
 
     const handleScroll = useCallback(() => {
         if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
-            setPage(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
+            setPagePosts(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
         }
     }, [hasMorePosts]);
 
@@ -195,6 +220,16 @@ const MyProfile = () => {
             }
         }
     };
+
+    function handlePreviousCommentsPage() {
+        setPageComments(prevPage => prevPage - 1);
+        console.log(pageComments);
+    }
+
+    function handleNextCommentsPage() {
+        setPageComments(prevPage => prevPage + 1);
+        console.log(pageComments);
+    }
 
 
 
@@ -355,6 +390,22 @@ const MyProfile = () => {
                                             </div>
                                         ))
                                     ) : null}
+                                    {
+                                        openComments[post.id] ?
+                                            <div className={styles.pagination}>
+                                                <button onClick={handlePreviousCommentsPage}
+                                                        disabled={isFirstComments}
+                                                        className={styles.arrowButton}>
+                                                    &larr;
+                                                </button>
+                                                <button onClick={handleNextCommentsPage}
+                                                        disabled={isLastComments}
+                                                        className={styles.arrowButton}>
+                                                    &rarr;
+                                                </button>
+                                            </div>
+                                            : null
+                                    }
                                 </div>
 
                                 <button onClick={() => {

@@ -18,8 +18,11 @@ const UserProfile = () => {
     const [commentators, setCommentators] = useState({});
     const [openComments, setOpenComments] = useState({});
     const [commentatorImages, setCommentatorImages] = useState({});
-    const [page, setPage] = useState(0);
+    const [pagePosts, setPagePosts] = useState(0);
+    const [pageComments, setPageComments] = useState(0);
     const [hasMorePosts, setHasMorePosts] = useState(true)
+    const [isFirstComments, setIsFirstComments] = useState(true)
+    const [isLastComments, setIsLastComments] = useState(false)
 
 
     if (id === localStorage.getItem('userId')) {
@@ -37,7 +40,7 @@ const UserProfile = () => {
 
         const fetchPosts = async () => {
             try {
-                const postsData = await PostService.getPostsByUserId(id, page, 10);
+                const postsData = await PostService.getPostsByUserId(id, pagePosts, 10);
                 if (postsData.content.length === 0) {
                     setHasMorePosts(false);
                 }
@@ -55,11 +58,23 @@ const UserProfile = () => {
 
         fetchUser();
         fetchPosts();
-    }, [page, id]);
+    }, [pagePosts, id]);
 
     const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
         try {
-            const commentsData = await PostService.getAllCommentsByPostId(postId);
+            const commentsData = await PostService.getAllCommentsByPostId(postId, 5, pageComments);
+            if (commentsData.first === true){
+                setIsFirstComments(true)
+            } else {
+                setIsFirstComments(false)
+            }
+            console.log("isFirst " + isFirstComments)
+            if (commentsData.last === true){
+                setIsLastComments(true)
+            } else {
+                setIsLastComments(false)
+            }
+            console.log("isLast " + isLastComments)
             console.log(commentsData);
             setCommentsByPostId({
                 ...commentsByPostId,
@@ -83,6 +98,13 @@ const UserProfile = () => {
             console.error('Ошибка при получении комментариев:', error);
         }
     };
+    useEffect(() => {
+        const postIdsWithOpenComments = Object.keys(openComments).filter(postId => openComments[postId]);
+
+        postIdsWithOpenComments.forEach(postId => {
+            fetchComments(postId);
+        });
+    }, [pageComments, openComments]);
 
     const fetchCommentatorImage = async (userId) => {
         try {
@@ -99,7 +121,7 @@ const UserProfile = () => {
 
     const handleScroll = useCallback(() => {
         if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
-            setPage(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
+            setPagePosts(prevPages => prevPages + 1);
         }
     }, [hasMorePosts]);
 
@@ -151,6 +173,16 @@ const UserProfile = () => {
         ${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year} 
         ${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}
     `;
+    }
+
+    function handlePreviousCommentsPage() {
+        setPageComments(prevPage => prevPage - 1);
+        console.log(pageComments);
+    }
+
+    function handleNextCommentsPage() {
+        setPageComments(prevPage => prevPage + 1);
+        console.log(pageComments);
     }
 
     return (
@@ -276,18 +308,35 @@ const UserProfile = () => {
                                                     </div>
 
                                                     <h5>Created at: {formatDate(comment.createdAt)}</h5>
-                                                    <button onClick={async () => {
-                                                        const totalComments = document.getElementsByClassName('totalCommets');
-                                                        totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
-                                                        console.log(post.id);
-                                                        await PostService.deleteCommentByIdAndUserIdAndPostId(comment.id, parseInt(userId), post.id);
-                                                        fetchComments(post.id);
-                                                    }}>Delete comment
-                                                    </button>
+                                                    {comment.userId === parseInt(userId) ? (
+                                                        <button onClick={async () => {
+                                                            const totalComments = document.getElementsByClassName('totalCommets');
+                                                            totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
+                                                            await PostService.deleteCommentByIdAndUserIdAndPostId(comment.id, parseInt(userId), post.id);
+                                                            fetchComments(post.id);
+                                                        }}>Delete comment
+                                                        </button>
+                                                    ) : console.log(userId, comment.userId)}
                                                     <hr></hr>
                                                 </div>
                                             ))
                                         ) : null}
+                                        {
+                                            openComments[post.id] ?
+                                                <div className={styles.pagination}>
+                                                    <button onClick={handlePreviousCommentsPage}
+                                                            disabled={isFirstComments}
+                                                            className={styles.arrowButton}>
+                                                        &larr;
+                                                    </button>
+                                                    <button onClick={handleNextCommentsPage}
+                                                            disabled={isLastComments}
+                                                            className={styles.arrowButton}>
+                                                        &rarr;
+                                                    </button>
+                                                </div>
+                                                : null
+                                        }
                                     </div>
                                     <hr/>
                                 </div>
