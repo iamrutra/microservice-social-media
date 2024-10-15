@@ -120,7 +120,7 @@ const UserProfile = () => {
     };
 
     const handleScroll = useCallback(() => {
-        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
+        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 10 && hasMorePosts) {
             setPagePosts(prevPages => prevPages + 1);
         }
     }, [hasMorePosts]);

@@ -15,18 +15,12 @@ body {
 
 .mainAllUsers ul {
     list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     padding: 0;
-    width: 100%;
-    max-width: 900px;
+    width: 100%
 }
 
 .mainAllUsers li {
     font-size: 2rem;
-    width: calc(100% / 3 - 1rem);
-    text-align: center;
     margin-bottom: 1rem;
 }
 
@@ -42,36 +36,22 @@ body {
     font-style: italic;
     font-weight: 600;
 }
-
-.pagination {
+.authorImage{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+    border: 2px solid green;
+}
+.author{
     display: flex;
-    align-items: center;
-    margin-top: 1rem;
+}
+span{
+    font-size: 18px;
+    color: grey;
+}
+.userList{
+    margin-left: 100px;
 }
 
-.arrowButton {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    color: #3b4b2f;
-    padding: 0.5rem;
-    transition: color 0.3s ease;
-    margin: 0 1rem;
-}
 
-.arrowButton:disabled {
-    color: #ccc;
-    cursor: not-allowed;
-}
-
-.arrowButton:hover:not(:disabled) {
-    color: #2a3b2e;
-}
-
-.pageSizeSelect {
-    margin: 1rem;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid #3b4b2f;
-}

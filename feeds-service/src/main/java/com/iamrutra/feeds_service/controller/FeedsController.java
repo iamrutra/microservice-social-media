@@ -4,9 +4,7 @@ import com.iamrutra.feeds_service.user.PostClient;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/feeds")
@@ -17,7 +15,12 @@ public class FeedsController {
     private final PostClient postClient;
 
     @GetMapping
-    public ResponseEntity<?> getFeeds(){
-        return ResponseEntity.ok(postClient.getAllPosts(0, 10, "createdAt", false));
+    public ResponseEntity<?> getFeeds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
+    ){
+        return ResponseEntity.ok(postClient.getAllPosts(page, size, sortBy, ascending));
     }
 }

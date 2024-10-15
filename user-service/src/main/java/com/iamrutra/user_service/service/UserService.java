@@ -9,6 +9,7 @@ import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -131,6 +132,10 @@ public class UserService {
         } catch (AmazonS3Exception e) {
             throw new IllegalStateException("Failed to download file from S3", e);
         }
+    }
+
+    public List<User> findByUsernameContaining(String username, int limit) {
+        return userRepository.findByUsernameContainingIgnoreCase(username, PageRequest.of(0, limit));
     }
 }
 

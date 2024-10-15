@@ -36,6 +36,17 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_subscriptions",
+            joinColumns = @JoinColumn(name = "subscriber_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id")
+    )
+    private List<User> following;
+
+    @ManyToMany(mappedBy = "following")
+    private List<User> followers;
+
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles;
 

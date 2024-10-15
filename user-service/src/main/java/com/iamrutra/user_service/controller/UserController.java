@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +74,14 @@ public class UserController {
     @GetMapping("defaultPfp/image/download")
     public byte[] downloadDefaultPfp() {
         return userService.downloadDefaultPfp();
+    }
+
+    @GetMapping("/search")
+    public List<User> searchUsers(@RequestParam(required = false) String username) {
+        if (username == null || username.isEmpty()) {
+            return Collections.emptyList(); // Или вернуть всех пользователей, если нужно
+        }
+        return userService.findByUsernameContaining(username, 10);
     }
 
 }

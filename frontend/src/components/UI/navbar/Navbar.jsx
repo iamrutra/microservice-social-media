@@ -32,7 +32,7 @@ const Navbar = () => {
             {isTokenValid ? (
                 <>
                     <Link to={"/feeds"}>Feeds</Link>
-                    <Link to={"/users"}>Users</Link>
+                    <Link to={"/users"}>Search</Link>
                     <Link to={`/myProfile/${userId}`}>Profile</Link>
                     <Link to={'/logout'}>Log out</Link>
                 </>

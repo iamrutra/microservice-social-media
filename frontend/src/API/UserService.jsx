@@ -32,7 +32,7 @@ export default class UserService {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
-            params: { page, size } // Send pagination parameters
+            params: { size } // Send pagination parameters
         });
         return response.data;
     }
@@ -45,5 +45,13 @@ export default class UserService {
         });
         return response.data;
     }
-    //
+    //http://localhost:8222/api/v1/users/search?username=root
+    static async searchUsers(username) {
+        const response = await apiClient.get(`users/search?username=${username}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    }
 }

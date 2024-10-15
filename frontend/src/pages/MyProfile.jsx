@@ -116,7 +116,7 @@ const MyProfile = () => {
     }, [pageComments, openComments]);
 
     const handleScroll = useCallback(() => {
-        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 100 && hasMorePosts) {
+        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 10 && hasMorePosts) {
             setPagePosts(prevPages => prevPages + 1); // Увеличиваем номер страницы при достижении конца страницы
         }
     }, [hasMorePosts]);
