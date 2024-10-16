@@ -231,7 +231,7 @@ const FeedsPage = () => {
     };
 
     return (
-        <main>
+        <main className={styles.feedsMain}>
 
             <div className={styles.posts}>
                 {posts.length > 0 ? (
@@ -243,7 +243,7 @@ const FeedsPage = () => {
                                     src={authorImages[post.userId] || 'loading_image_placeholder_url'}
                                     alt="User avatar"
                                 />
-                                <h4>{users[post.userId]?.username || 'Loading user...'}</h4>
+                                <a href={"user/" + users[post.userId]?.id}>{users[post.userId]?.username || 'Loading user...'}</a>
                             </div>
                             {post.postImage && (
                                 <img

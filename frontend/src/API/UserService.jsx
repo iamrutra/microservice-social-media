@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Create an Axios instance with an interceptor
 const apiClient = axios.create({
     baseURL: 'http://localhost:8222/api/v1/',
 });
@@ -45,9 +44,18 @@ export default class UserService {
         });
         return response.data;
     }
-    //http://localhost:8222/api/v1/users/search?username=root
+
     static async searchUsers(username) {
         const response = await apiClient.get(`users/search?username=${username}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    }
+
+    static async followUser(followerId, followingId) {
+        const response = await apiClient.post(`users/follow/${followerId}/${followingId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },

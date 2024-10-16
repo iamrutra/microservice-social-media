@@ -38,7 +38,6 @@ const Navbar = () => {
                 </>
             ) : (
                 <>
-                    <Link to={"/users"}>Users</Link>
                     <Link to={"/auth/login"}>Sign in</Link>
                     <Link to={"/auth/register"}>Sign up</Link>
                 </>

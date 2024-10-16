@@ -185,6 +185,15 @@ const UserProfile = () => {
         console.log(pageComments);
     }
 
+    const handleFollow = async (id) => {
+        try {
+            await UserService.followUser(userId, id);
+            window.location.reload();
+        } catch (error) {
+            console.error('Error following user:', error);
+        }
+    }
+
     return (
         <div className={styles.userProfile}>
             {user ? (
@@ -203,6 +212,7 @@ const UserProfile = () => {
                                 alt="Default Picture For Profile"
                             />
                         )}
+                        <button onClick={() => handleFollow(user.id)}>Follow</button>
                         <h2>Username: {user.username}</h2>
                         <h3>Full Name: {user.fullName}</h3>
                         <h3>Date of Birth: {user.dateOfBirth}</h3>

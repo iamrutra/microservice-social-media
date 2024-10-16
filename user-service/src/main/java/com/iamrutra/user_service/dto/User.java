@@ -38,8 +38,8 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-            name = "user_subscriptions",
-            joinColumns = @JoinColumn(name = "subscriber_id"),
+            name = "user_followers",
+            joinColumns = @JoinColumn(name = "follower_id"),
             inverseJoinColumns = @JoinColumn(name = "following_id")
     )
     private List<User> following;

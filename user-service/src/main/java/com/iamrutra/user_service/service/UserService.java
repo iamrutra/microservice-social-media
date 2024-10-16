@@ -137,5 +137,25 @@ public class UserService {
     public List<User> findByUsernameContaining(String username, int limit) {
         return userRepository.findByUsernameContainingIgnoreCase(username, PageRequest.of(0, limit));
     }
+
+    public User followUser(int followerId, int followingId) {
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new IllegalArgumentException("Follower user not found"));
+
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new IllegalArgumentException("User to follow not found"));
+
+        if (!follower.getFollowing().contains(following)) {
+            follower.getFollowing().add(following);
+
+            following.getFollowers().add(follower);
+
+            userRepository.save(follower);
+            userRepository.save(following);
+        }
+
+        return follower;
+    }
+
 }
 

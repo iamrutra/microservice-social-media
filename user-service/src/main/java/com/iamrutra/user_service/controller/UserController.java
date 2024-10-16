@@ -79,9 +79,15 @@ public class UserController {
     @GetMapping("/search")
     public List<User> searchUsers(@RequestParam(required = false) String username) {
         if (username == null || username.isEmpty()) {
-            return Collections.emptyList(); // Или вернуть всех пользователей, если нужно
+            return Collections.emptyList();
         }
         return userService.findByUsernameContaining(username, 10);
+    }
+
+    @PostMapping("/follow/{followerId}/{followingId}")
+    public ResponseEntity<User> followUser(@PathVariable("followerId") int followerId,
+                                           @PathVariable("followingId") int followingId) {
+        return ResponseEntity.ok(userService.followUser(followerId, followingId));
     }
 
 }
