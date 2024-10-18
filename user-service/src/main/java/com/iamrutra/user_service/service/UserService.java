@@ -3,6 +3,7 @@ package com.iamrutra.user_service.service;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.iamrutra.user_service.bucket.BucketName;
 import com.iamrutra.user_service.dto.UserRequest;
+import com.iamrutra.user_service.dto.UserResponse;
 import com.iamrutra.user_service.fileStore.FileStore;
 import com.iamrutra.user_service.mapper.UserMapper;
 import com.iamrutra.user_service.dto.User;
@@ -11,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -157,5 +157,48 @@ public class UserService {
         return follower;
     }
 
+    public Boolean isFollowing(int followerId, int followingId) {
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new IllegalArgumentException("Follower user not found"));
+
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new IllegalArgumentException("User to follow not found"));
+
+        return follower.getFollowing().contains(following);
+    }
+
+    public User unfollowUser(int followerId, int followingId) {
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new IllegalArgumentException("Follower user not found"));
+
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new IllegalArgumentException("User to follow not found"));
+
+        if (follower.getFollowing().contains(following)) {
+            follower.getFollowing().remove(following);
+
+            following.getFollowers().remove(follower);
+
+            userRepository.save(follower);
+            userRepository.save(following);
+        }
+
+        return follower;
+    }
+
+
+    public List<UserResponse> getFollowers(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return userMapper.mapToUserResponseList(user.getFollowers());
+    }
+
+    public List<UserResponse> getFollowing(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return userMapper.mapToUserResponseList(user.getFollowing());
+    }
 }
 

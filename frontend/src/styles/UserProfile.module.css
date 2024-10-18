@@ -254,3 +254,9 @@ button {
     color: white;
     background-color: green;
 }
+.followButton:hover {
+    background-color: limegreen;
+}
+.unfollowButton:hover {
+    background-color: darkred;
+}

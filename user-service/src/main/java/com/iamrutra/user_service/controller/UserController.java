@@ -2,9 +2,9 @@ package com.iamrutra.user_service.controller;
 
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.dto.UserRequest;
+import com.iamrutra.user_service.dto.UserResponse;
 import com.iamrutra.user_service.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -13,13 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -90,4 +88,25 @@ public class UserController {
         return ResponseEntity.ok(userService.followUser(followerId, followingId));
     }
 
+    @GetMapping("/isFollowing/{followerId}/{followingId}")
+    public ResponseEntity<Boolean> isFollowing(@PathVariable("followerId") int followerId,
+                                               @PathVariable("followingId") int followingId) {
+        return ResponseEntity.ok(userService.isFollowing(followerId, followingId));
+    }
+
+    @PostMapping("/unfollow/{followerId}/{followingId}")
+    public ResponseEntity<User> unfollowUser(@PathVariable("followerId") int followerId,
+                                             @PathVariable("followingId") int followingId) {
+        return ResponseEntity.ok(userService.unfollowUser(followerId, followingId));
+    }
+
+    @GetMapping("/followers/{userId}")
+    public ResponseEntity<List<UserResponse>> getFollowers(@PathVariable("userId") int userId) {
+        return ResponseEntity.ok(userService.getFollowers(userId));
+    }
+
+    @GetMapping("/following/{userId}")
+    public ResponseEntity<List<UserResponse>> getFollowing(@PathVariable("userId") int userId) {
+        return ResponseEntity.ok(userService.getFollowing(userId));
+    }
 }

@@ -55,10 +55,46 @@ export default class UserService {
     }
 
     static async followUser(followerId, followingId) {
-        const response = await apiClient.post(`users/follow/${followerId}/${followingId}`, {
+        const response = await apiClient.post(`users/follow/${followerId}/${followingId}`, {}, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
+        });
+        return response.data;
+    }
+
+    static async isFollowing(followerId, followingId) {
+        const response = await apiClient.get(`users/isFollowing/${followerId}/${followingId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    }
+
+    static async unfollowUser(followerId, followingId) {
+        const response = await apiClient.post(`users/unfollow/${followerId}/${followingId}`, {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    }
+
+    static async getFollowers(userId) {
+        const response = await apiClient.get(`users/followers/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        });
+        return response.data;
+    }
+
+    static async getFollowing(userId) {
+        const response = await apiClient.get(`users/following/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
         });
         return response.data;
     }

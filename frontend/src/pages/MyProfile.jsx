@@ -28,6 +28,8 @@ const MyProfile = () => {
     const [hasMorePosts, setHasMorePosts] = useState(true);
     const [isFirstComments, setIsFirstComments] = useState(true)
     const [isLastComments, setIsLastComments] = useState(false)
+    const [followers, setFollowers] = useState([]);
+    const [following, setFollowing] = useState([]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -60,8 +62,20 @@ const MyProfile = () => {
                 console.error('Ошибка при получении данных постов пользователя:', error);
             }
         };
+        const fetchFollowersAndFollowing = async () => {
+            try {
+                const followersData = await UserService.getFollowers(id);
+                const followingData = await UserService.getFollowing(id);
+                setFollowers(followersData);
+                setFollowing(followingData);
+                console.log(followersData);
+                console.log(followingData);
+            } catch (error) {
+                console.error('Error getting followers and following:', error);
+            }
+        }
 
-
+        fetchFollowersAndFollowing();
         fetchUser();
         fetchPosts();
     }, [pagePosts, id]);
@@ -251,7 +265,11 @@ const MyProfile = () => {
                                 alt="Default Picture For Profile"
                             />
                         )}
-                        <UserProfileDropzone userProfileId={id} />
+
+                        <UserProfileDropzone userProfileId={id}/>
+                        <button>Edit profile</button>
+                        <h3 className={styles.followers}>{followers.length} followers</h3>
+                        <h3 className={styles.following}>{following.length} following</h3>
                         <h2>Username: {user.username}</h2>
                         <h3>Full Name: {user.fullName}</h3>
                         <h3>Date of Birth: {user.dateOfBirth}</h3>
@@ -260,7 +278,7 @@ const MyProfile = () => {
 
                     <div className={styles.posts}>
                         <div>
-                            <h2>My Posts</h2>
+                        <h2>My Posts</h2>
                             <form onSubmit={handleCreatePost}>
                                 <div className={styles.headerForm}>
                                     <input

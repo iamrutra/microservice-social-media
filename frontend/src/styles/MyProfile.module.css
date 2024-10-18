@@ -254,5 +254,8 @@ button {
     color: white;
     background-color: green;
 }
+.followers, .following{
+    color: #005200;
+}
 
 

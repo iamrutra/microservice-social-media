@@ -23,6 +23,9 @@ const UserProfile = () => {
     const [hasMorePosts, setHasMorePosts] = useState(true)
     const [isFirstComments, setIsFirstComments] = useState(true)
     const [isLastComments, setIsLastComments] = useState(false)
+    const [isFollowing, setIsFollowing] = useState(false)
+    const [followers, setFollowers] = useState([]);
+    const [following, setFollowing] = useState([]);
 
 
     if (id === localStorage.getItem('userId')) {
@@ -56,6 +59,37 @@ const UserProfile = () => {
             }
         };
 
+        const handleIsFollowing = async () => {
+            try {
+                const response = await UserService.isFollowing(userId, id);
+                if(response === true){
+                    console.log("User is followed")
+                    setIsFollowing(true)
+                }
+                else{
+                    console.log("User is not followed")
+                    setIsFollowing(false)
+                }
+            } catch (error) {
+                console.error('Error checking if user is followed:', error);
+            }
+        }
+
+        const fetchFollowersAndFollowing = async () => {
+            try {
+                const followersData = await UserService.getFollowers(id);
+                const followingData = await UserService.getFollowing(id);
+                setFollowers(followersData);
+                setFollowing(followingData);
+                console.log(followersData);
+                console.log(followingData);
+            } catch (error) {
+                console.error('Error getting followers and following:', error);
+            }
+        }
+
+        fetchFollowersAndFollowing()
+        handleIsFollowing();
         fetchUser();
         fetchPosts();
     }, [pagePosts, id]);
@@ -194,6 +228,17 @@ const UserProfile = () => {
         }
     }
 
+    const handleUnfollow = async (id) => {
+        try {
+            await UserService.unfollowUser(userId, id);
+            window.location.reload();
+        } catch (error) {
+            console.error('Error unfollowing user:', error);
+        }
+    }
+
+
+
     return (
         <div className={styles.userProfile}>
             {user ? (
@@ -212,7 +257,15 @@ const UserProfile = () => {
                                 alt="Default Picture For Profile"
                             />
                         )}
-                        <button onClick={() => handleFollow(user.id)}>Follow</button>
+                        <h3>{followers.length} followers</h3>
+                        <h3>{following.length} following</h3>
+                        <h3></h3>
+                        <br/>
+                        {isFollowing ? (
+                            <button onClick={() => handleUnfollow(id)} className={styles.unfollowButton}>Unfollow</button>
+                        ) : (
+                            <button onClick={() => handleFollow(id)} className={styles.followButton}>Follow</button>
+                        )}
                         <h2>Username: {user.username}</h2>
                         <h3>Full Name: {user.fullName}</h3>
                         <h3>Date of Birth: {user.dateOfBirth}</h3>
