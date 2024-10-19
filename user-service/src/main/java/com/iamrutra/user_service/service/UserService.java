@@ -234,7 +234,7 @@ public class UserService {
         log.info("Keycloak ID: " + keycloakId);
 
         // Здесь укажите URL вашего Keycloak сервера и realm
-        String keycloakUrl = "http://localhost:8080/auth/admin/realms/iamrutra/users/{keycloakId}";
+        String keycloakUrl = "http://localhost:8080/auth/admin/realms/iamrutra/users/" + keycloakId;
         log.info("Keycloak URL: " + keycloakUrl);
 
         // Создаем новый объект, который мы будем отправлять в Keycloak
