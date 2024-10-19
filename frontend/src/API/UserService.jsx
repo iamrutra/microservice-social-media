@@ -98,4 +98,13 @@ export default class UserService {
         });
         return response.data;
     }
+
+    static async updateUser(id, user) {
+        const response = await apiClient.put(`users/${id}`, user, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        });
+        return response.data;
+    }
 }

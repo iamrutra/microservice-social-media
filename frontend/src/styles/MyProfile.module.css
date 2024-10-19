@@ -257,5 +257,56 @@ button {
 .followers, .following{
     color: #005200;
 }
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+
+.modalWindow {
+    position: relative;
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    z-index: 1001;
+}
+
+
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: green;
+    transition: color 0.3s ease;
+}
+
+.closeButton:hover {
+    background-color: darkgreen;
+    color: white;
+}
+.editProfile input{
+    width: 100%;
+    padding: 10px;
+    border: 1px solid green;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
 
 

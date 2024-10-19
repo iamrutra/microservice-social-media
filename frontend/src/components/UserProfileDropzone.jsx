@@ -6,6 +6,7 @@ import axios from "axios";
 function UserProfileDropzone({ userProfileId }) {
     const [isFileSelected, setIsFileSelected] = useState(false);
     const [selectedProfileFile, setSelectedProfileFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const onDrop = useCallback(acceptedFiles => {
         setSelectedProfileFile(acceptedFiles[0]);
@@ -16,6 +17,7 @@ function UserProfileDropzone({ userProfileId }) {
 
     const handleUpload = () => {
         if (selectedProfileFile) {
+            setIsUploading(true); // Начало загрузки
             const formData = new FormData();
             formData.append('file', selectedProfileFile);
 
@@ -27,11 +29,12 @@ function UserProfileDropzone({ userProfileId }) {
                         "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
                     }
                 }
-            ).then(() => {
+            ).then((response) => {
                 console.log("Файл загружен успешно");
-                window.location.reload();
+                setIsUploading(false); // Завершение загрузки
             }).catch(err => {
                 console.log("Ошибка при загрузке изображения профиля:", err);
+                setIsUploading(false); // Если произошла ошибка
             });
         }
     };
@@ -41,13 +44,13 @@ function UserProfileDropzone({ userProfileId }) {
             {!isFileSelected && (
                 <div {...getRootProps()} className={styles.dropzone}>
                     <input {...getInputProps()} />
-                    <button id="chIm">Change Image</button>
+                    <button type="button" id="chIm" disabled={isUploading}>Change Image</button>
                 </div>
             )}
             {selectedProfileFile && (
                 <>
-                    <p>Выбран файл: {selectedProfileFile.name}</p>
-                    <button onClick={handleUpload}>Upload</button>
+                    <p>Selected file: {selectedProfileFile.name}</p>
+                    <button type="button" onClick={handleUpload} disabled={isUploading}>Upload</button>
                 </>
             )}
         </div>

@@ -9,11 +9,18 @@ import com.iamrutra.user_service.mapper.UserMapper;
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,10 +33,12 @@ import static org.apache.http.entity.ContentType.*;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final FileStore fileStore;
+    private final RestTemplate restTemplate;
 
     public Page<User> findAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable);
@@ -40,6 +49,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
         user.setLocked(false);
+        user.setKeycloakId(request.keycloakId());
         user.setRoles(List.of("USER"));
         user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
@@ -199,6 +209,81 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return userMapper.mapToUserResponseList(user.getFollowing());
+    }
+
+    public User updateUser(int id, UserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setUsername(request.username());
+        user.setDateOfBirth(request.dateOfBirth());
+        user.setFullName(request.fullName());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+
+        userRepository.save(user);
+
+        String keycloakId = user.getKeycloakId();
+        updateUserInKeycloak(keycloakId, request, getAdminAccessToken());
+
+        return user;
+    }
+    private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
+        RestTemplate restTemplate = new RestTemplate();
+        log.info("Updating user in Keycloak");
+        log.info("Keycloak ID: " + keycloakId);
+
+        // Здесь укажите URL вашего Keycloak сервера и realm
+        String keycloakUrl = "http://localhost:8080/auth/admin/realms/iamrutra/users/{keycloakId}";
+        log.info("Keycloak URL: " + keycloakUrl);
+
+        // Создаем новый объект, который мы будем отправлять в Keycloak
+        Map<String, Object> userUpdates = new HashMap<>();
+        userUpdates.put("username", request.username());
+        userUpdates.put("firstName", request.fullName());
+        userUpdates.put("email", request.email());
+        userUpdates.put("password", request.password());
+        userUpdates.put("dateOfBirth", request.dateOfBirth().toString());
+        userUpdates.put("enabled", true);
+
+        log.info("User updates: " + userUpdates);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userUpdates, headers);
+
+        try {
+            restTemplate.put(keycloakUrl, entity, keycloakId);
+            System.out.println("User updated in Keycloak successfully.");
+        } catch (HttpClientErrorException e) {
+            System.err.println("Error updating user in Keycloak: " + e.getResponseBodyAsString());
+        }
+    }
+
+    public String getAdminAccessToken() {
+        // Get an admin token using the client credentials grant type
+        String url = "http://localhost:8080/realms/iamrutra/protocol/openid-connect/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "password");
+        body.add("client_id", "springboot-keycloak");
+        body.add("username", "root");
+        body.add("password", "root");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return (String) response.getBody().get("access_token");
+        }
+
+        return null;
     }
 }
 

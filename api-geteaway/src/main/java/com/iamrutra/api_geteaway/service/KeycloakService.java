@@ -3,6 +3,7 @@ package com.iamrutra.api_geteaway.service;
 
 import com.iamrutra.api_geteaway.controller.AuthController;
 import com.iamrutra.api_geteaway.dto.RegisterRequest;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -20,6 +21,8 @@ import java.util.Map;
 public class KeycloakService {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     RestTemplate restTemplate = new RestTemplate();
+    @Getter
+    private String keycloakId;
 
     public String getKeycloakToken(String username, String password) {
         String url = "http://localhost:8080/realms/iamrutra/protocol/openid-connect/token";
@@ -77,6 +80,9 @@ public class KeycloakService {
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            String locationHeader = response.getHeaders().getLocation().toString();
+            keycloakId = locationHeader.substring(locationHeader.lastIndexOf('/') + 1);
+            log.info(keycloakId);
             return response.getStatusCode() == HttpStatus.CREATED;
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
@@ -84,7 +90,6 @@ public class KeycloakService {
 
         return false;
     }
-
 
     public String getAdminAccessToken() {
         // Get an admin token using the client credentials grant type

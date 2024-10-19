@@ -19,6 +19,7 @@ public record UserRequest(
         @NotBlank(message = "Username cannot be empty")
         @UniqueElements(message = "Username already exists")
         String username,
+        String keycloakId,
         @NotEmpty(message = "Full name cannot be empty")
         @NotNull(message = "Full name cannot be empty")
         @NotBlank(message = "Full name cannot be empty")

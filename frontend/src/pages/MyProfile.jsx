@@ -30,6 +30,7 @@ const MyProfile = () => {
     const [isLastComments, setIsLastComments] = useState(false)
     const [followers, setFollowers] = useState([]);
     const [following, setFollowing] = useState([]);
+    const [showEditProfile, setShowEditProfile] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -244,7 +245,37 @@ const MyProfile = () => {
         setPageComments(prevPage => prevPage + 1);
         console.log(pageComments);
     }
+    const toggleEditProfile = () => {
+        setShowEditProfile(prevState => !prevState); // Toggle the edit profile form visibility
+    };
 
+
+    function editProfile(event) {
+        event.preventDefault();
+
+        const username = document.getElementById("editUsername").value;
+        const fullName = document.getElementById("editFullName").value;
+        const dateOfBirth = document.getElementById("editDateOfBirth").value;
+        const email = document.getElementById("editEmail").value;
+        const password = document.getElementById("editPassword").value;
+
+        const userData = {
+            username: (username !== "") ? username : user.username,
+            fullName: (fullName !== "") ? fullName : user.fullName,
+            dateOfBirth: (dateOfBirth !== "") ? dateOfBirth : user.dateOfBirth,
+            email: (email !== "") ? email : user.email,
+            password: (password !== "") ? password : user.password,
+        };
+
+        UserService.updateUser(userId, userData)
+            .then(response => {
+                console.log("User updated successfully:", response);
+                window.location.reload();
+            })
+            .catch(error => {
+                console.log("Error updating profile:", error);
+            });
+    }
 
 
     return (
@@ -265,9 +296,7 @@ const MyProfile = () => {
                                 alt="Default Picture For Profile"
                             />
                         )}
-
-                        <UserProfileDropzone userProfileId={id}/>
-                        <button>Edit profile</button>
+                        <button onClick={toggleEditProfile}>Edit profile</button>
                         <h3 className={styles.followers}>{followers.length} followers</h3>
                         <h3 className={styles.following}>{following.length} following</h3>
                         <h2>Username: {user.username}</h2>
@@ -277,7 +306,7 @@ const MyProfile = () => {
                     </div>
 
                     <div className={styles.posts}>
-                        <div>
+                    <div>
                         <h2>My Posts</h2>
                             <form onSubmit={handleCreatePost}>
                                 <div className={styles.headerForm}>
@@ -444,7 +473,53 @@ const MyProfile = () => {
                         ))}
                         {!hasMorePosts && <p>No more posts to load</p>}
                     </div>
-
+                    {showEditProfile && (
+                        <div className={styles.modalOverlay}>
+                            <div className={styles.modalWindow}>
+                                <button className={styles.closeButton} onClick={toggleEditProfile}>&times;</button>
+                                <div className={styles.editProfile}>
+                                    <h2>Edit Profile</h2>
+                                    <form>
+                                        {user.profileImageLink ? (
+                                            <img
+                                                className={styles.profileImage}
+                                                src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
+                                                alt="User avatar"
+                                            />
+                                        ) : (
+                                            <img
+                                                className={styles.profileImage}
+                                                src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
+                                                alt="Default Picture For Profile"
+                                            />
+                                        )}
+                                        <UserProfileDropzone userProfileId={id}/>
+                                        <div>
+                                            <label>Username</label>
+                                            <input id="editUsername" type="text" placeholder={user.username}/>
+                                        </div>
+                                        <div>
+                                            <label>Full Name</label>
+                                            <input id="editFullName" type="text" placeholder={user.fullName}/>
+                                        </div>
+                                        <div>
+                                            <label>Date of Birth</label>
+                                            <input id="editDateOfBirth" type="date" placeholder={user.dateOfBirth}/>
+                                        </div>
+                                        <div>
+                                            <label>Email</label>
+                                            <input id="editEmail" type="email" placeholder={user.email}/>
+                                        </div>
+                                        <div>
+                                            <label>Password</label>
+                                            <input id="editPassword" type="password" placeholder="Password"/>
+                                        </div>
+                                        <button onClick={editProfile}>Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <p>Загрузка...</p>

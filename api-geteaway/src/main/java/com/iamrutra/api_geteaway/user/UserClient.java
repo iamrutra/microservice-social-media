@@ -22,5 +22,5 @@ public interface UserClient {
     public ResponseEntity<UserRep> getUserByUsername(@PathVariable("username") String username);
 
     @PostMapping("/register")
-    public ResponseEntity<UserRep> saveUser(@RequestBody RegisterRequest request);
+    public ResponseEntity<UserRep> saveUser(@RequestBody UserRep request);
 }

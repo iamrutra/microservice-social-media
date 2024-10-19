@@ -23,6 +23,7 @@ public class User {
     @Id
     @GeneratedValue
     private Integer id;
+    private String keycloakId;
     @Column(unique = true)
     private String username;
     private String fullName;

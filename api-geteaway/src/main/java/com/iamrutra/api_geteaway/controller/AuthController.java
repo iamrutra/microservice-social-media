@@ -48,7 +48,8 @@ public class AuthController {
             newUser.setFullName(registerRequest.getFullName());
             newUser.setPassword(registerRequest.getPassword());
             newUser.setDateOfBirth(registerRequest.getDateOfBirth());
-            userClient.saveUser(registerRequest);
+            newUser.setKeycloakId(keycloakService.getKeycloakId());
+            userClient.saveUser(newUser);
 
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
         } else {
@@ -56,5 +57,9 @@ public class AuthController {
         }
     }
 
+    @GetMapping("adminToken")
+    public ResponseEntity<?> getAdminToken() {
+        return ResponseEntity.ok(keycloakService.getAdminAccessToken());
+    }
 
 }

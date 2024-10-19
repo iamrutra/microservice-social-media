@@ -109,4 +109,9 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> getFollowing(@PathVariable("userId") int userId) {
         return ResponseEntity.ok(userService.getFollowing(userId));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable("id") int id, @RequestBody UserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
+    }
 }

@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class UserRep {
     private String id;
+    private String keycloakId;
     private String username;
     private String email;
     private String fullName;
