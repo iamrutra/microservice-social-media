@@ -229,38 +229,53 @@ public class UserService {
         return user;
     }
     private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
-        RestTemplate restTemplate = new RestTemplate();
         log.info("Updating user in Keycloak");
         log.info("Keycloak ID: " + keycloakId);
 
-        // Здесь укажите URL вашего Keycloak сервера и realm
+        // URL вашего Keycloak сервера и realm
         String keycloakUrl = "http://localhost:8080/auth/admin/realms/iamrutra/users/" + keycloakId;
         log.info("Keycloak URL: " + keycloakUrl);
 
-        // Создаем новый объект, который мы будем отправлять в Keycloak
+        // Создаем объект с обновлениями пользователя
         Map<String, Object> userUpdates = new HashMap<>();
         userUpdates.put("username", request.username());
-        userUpdates.put("firstName", request.fullName());
         userUpdates.put("email", request.email());
-        userUpdates.put("password", request.password());
-        userUpdates.put("dateOfBirth", request.dateOfBirth().toString());
         userUpdates.put("enabled", true);
+
+        // Добавляем атрибуты пользователя
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("fullName", List.of(request.fullName()));
+        attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
+        userUpdates.put("attributes", attributes);
+
+        // Устанавливаем новый пароль (если нужно)
+        List<Map<String, Object>> credentials = new ArrayList<>();
+        Map<String, Object> passwordMap = new HashMap<>();
+        passwordMap.put("type", "password");
+        passwordMap.put("value", request.password());
+        passwordMap.put("temporary", false); // Если временный пароль, установите true
+        credentials.add(passwordMap);
+        userUpdates.put("credentials", credentials);
 
         log.info("User updates: " + userUpdates);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.setBearerAuth(token); // Токен администратора
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userUpdates, headers);
 
         try {
-            restTemplate.put(keycloakUrl, entity, keycloakId);
-            System.out.println("User updated in Keycloak successfully.");
+            // Отправляем PUT-запрос для обновления пользователя
+            restTemplate.exchange(keycloakUrl, HttpMethod.PUT, entity, String.class);
+            log.info("User updated in Keycloak successfully.");
         } catch (HttpClientErrorException e) {
-            System.err.println("Error updating user in Keycloak: " + e.getResponseBodyAsString());
+            // Логируем полную ошибку для диагностики
+            log.error("Error updating user in Keycloak: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            throw new IllegalStateException("Failed to update user in Keycloak", e);
         }
     }
+
 
     public String getAdminAccessToken() {
         // Get an admin token using the client credentials grant type
