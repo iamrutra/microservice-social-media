@@ -260,11 +260,11 @@ const MyProfile = () => {
         const password = document.getElementById("editPassword").value;
 
         const userData = {
-            username: (username !== "") ? username : user.username,
-            fullName: (fullName !== "") ? fullName : user.fullName,
-            dateOfBirth: (dateOfBirth !== "") ? dateOfBirth : user.dateOfBirth,
-            email: (email !== "") ? email : user.email,
-            password: (password !== "") ? password : user.password,
+            username: (username !== "") ? username : null,
+            fullName: (fullName !== "") ? fullName : null,
+            dateOfBirth: (dateOfBirth !== "") ? dateOfBirth : null,
+            email: (email !== "") ? email : null,
+            password: (password !== "") ? password : null,
         };
 
         UserService.updateUser(userId, userData)

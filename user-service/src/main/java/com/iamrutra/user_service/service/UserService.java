@@ -212,52 +212,84 @@ public class UserService {
     }
 
     public User updateUser(int id, UserRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("UserRequest cannot be null");
+        }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        user.setUsername(request.username());
-        user.setDateOfBirth(request.dateOfBirth());
-        user.setFullName(request.fullName());
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        if (request.username() != null && !request.username().isEmpty()) {
+            user.setUsername(request.username());
+        }
+        if (request.email() != null && !request.email().isEmpty()) {
+            user.setEmail(request.email());
+        }
+        if (request.fullName() != null && !request.fullName().isEmpty()) {
+            user.setFullName(request.fullName());
+        }
+        if (request.dateOfBirth() != null) {
+            user.setDateOfBirth(request.dateOfBirth());
+        }
+        if (request.password() != null && !request.password().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
 
         userRepository.save(user);
 
         String keycloakId = user.getKeycloakId();
+        if (keycloakId == null) {
+            throw new IllegalArgumentException("Keycloak ID is not set for the user");
+        }
+
+        // Обновляем пользователя в Keycloak, передавая только измененные данные
         updateUserInKeycloak(keycloakId, request, getAdminAccessToken());
 
         return user;
     }
+
     private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
         log.info("Updating user in Keycloak");
         log.info("Keycloak ID: " + keycloakId);
-        
+
         String keycloakUrl = "http://localhost:8080/admin/realms/iamrutra/users/" + keycloakId;
         log.info("Keycloak URL: " + keycloakUrl);
-        
-        Map<String, Object> userUpdates = new HashMap<>();
-        userUpdates.put("username", request.username());
-        userUpdates.put("email", request.email());
-        userUpdates.put("enabled", true);
-        
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("fullName", List.of(request.fullName()));
-        attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
-        userUpdates.put("attributes", attributes);
 
-        
-        List<Map<String, Object>> credentials = new ArrayList<>();
-        Map<String, Object> passwordMap = new HashMap<>();
-        passwordMap.put("type", "password");
-        passwordMap.put("value", request.password());
-        passwordMap.put("temporary", false); 
-        credentials.add(passwordMap);
-        userUpdates.put("credentials", credentials);
+        Map<String, Object> userUpdates = new HashMap<>();
+
+        if (request.username() != null && !request.username().isEmpty()) {
+            userUpdates.put("username", request.username());
+        }
+        if (request.email() != null && !request.email().isEmpty()) {
+            userUpdates.put("email", request.email());
+        }
+        userUpdates.put("enabled", true);
+
+        Map<String, Object> attributes = new HashMap<>();
+        if (request.fullName() != null && !request.fullName().isEmpty()) {
+            attributes.put("fullName", List.of(request.fullName()));
+        }
+        if (request.dateOfBirth() != null) {
+            attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
+        }
+        if (!attributes.isEmpty()) {
+            userUpdates.put("attributes", attributes);
+        }
+
+        if (request.password() != null && !request.password().isEmpty()) {
+            List<Map<String, Object>> credentials = new ArrayList<>();
+            Map<String, Object> passwordMap = new HashMap<>();
+            passwordMap.put("type", "password");
+            passwordMap.put("value", request.password());
+            passwordMap.put("temporary", false);
+            credentials.add(passwordMap);
+            userUpdates.put("credentials", credentials);
+        }
 
         log.info("User updates: " + userUpdates);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token); // Токен администратора
+        headers.setBearerAuth(token);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userUpdates, headers);
@@ -270,6 +302,7 @@ public class UserService {
             throw new IllegalStateException("Failed to update user in Keycloak", e);
         }
     }
+
 
 
     public String getAdminAccessToken() {
