@@ -231,29 +231,26 @@ public class UserService {
     private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
         log.info("Updating user in Keycloak");
         log.info("Keycloak ID: " + keycloakId);
-
-        // URL вашего Keycloak сервера и realm
-        String keycloakUrl = "http://localhost:8080/auth/admin/realms/iamrutra/users/" + keycloakId;
+        
+        String keycloakUrl = "http://localhost:8080/admin/realms/iamrutra/users/" + keycloakId;
         log.info("Keycloak URL: " + keycloakUrl);
-
-        // Создаем объект с обновлениями пользователя
+        
         Map<String, Object> userUpdates = new HashMap<>();
         userUpdates.put("username", request.username());
         userUpdates.put("email", request.email());
         userUpdates.put("enabled", true);
-
-        // Добавляем атрибуты пользователя
+        
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("fullName", List.of(request.fullName()));
         attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
         userUpdates.put("attributes", attributes);
 
-        // Устанавливаем новый пароль (если нужно)
+        
         List<Map<String, Object>> credentials = new ArrayList<>();
         Map<String, Object> passwordMap = new HashMap<>();
         passwordMap.put("type", "password");
         passwordMap.put("value", request.password());
-        passwordMap.put("temporary", false); // Если временный пароль, установите true
+        passwordMap.put("temporary", false); 
         credentials.add(passwordMap);
         userUpdates.put("credentials", credentials);
 
@@ -266,11 +263,9 @@ public class UserService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userUpdates, headers);
 
         try {
-            // Отправляем PUT-запрос для обновления пользователя
             restTemplate.exchange(keycloakUrl, HttpMethod.PUT, entity, String.class);
             log.info("User updated in Keycloak successfully.");
         } catch (HttpClientErrorException e) {
-            // Логируем полную ошибку для диагностики
             log.error("Error updating user in Keycloak: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             throw new IllegalStateException("Failed to update user in Keycloak", e);
         }
@@ -278,7 +273,6 @@ public class UserService {
 
 
     public String getAdminAccessToken() {
-        // Get an admin token using the client credentials grant type
         String url = "http://localhost:8080/realms/iamrutra/protocol/openid-connect/token";
 
         HttpHeaders headers = new HttpHeaders();
