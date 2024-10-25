@@ -2,9 +2,11 @@ package com.iamrutra.post_service.controller;
 
 import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.model.PostRequest;
+import com.iamrutra.post_service.service.PostRequestCounterService;
 import com.iamrutra.post_service.service.PostService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,8 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Optional;
+import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class PostController {
 
     private final PostService postService;
+    private final PostRequestCounterService postRequestCounterService;
 
     @PostMapping("/create")
     public ResponseEntity<Integer> createPost(@RequestBody PostRequest request) {
@@ -40,11 +42,25 @@ public class PostController {
     ) {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
+        log.info("Request from db");
         return ResponseEntity.ok(postService.getPostsByUserId(userId, pageable));
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<Post> getPostById(@PathVariable("id") int id) {
+        int requestCount = postRequestCounterService.incrementRequestCount(id);
+
+        if (requestCount > 5) {
+            log.info("Request from cache");
+            return getPostByIdCached(id);
+        }
+
+        log.info("Request from db");
+        return ResponseEntity.ok(postService.getPostById(id));
+    }
+
+    @Cacheable(value = "postCache", key = "#id")
+    public ResponseEntity<Post> getPostByIdCached(int id) {
         return ResponseEntity.ok(postService.getPostById(id));
     }
 

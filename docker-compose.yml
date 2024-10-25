@@ -68,6 +68,14 @@ services:
       timeout: 5s
       retries: 20
 
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+        - social-network
+    restart: unless-stopped
+
 networks:
     social-network:
         driver: bridge

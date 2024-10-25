@@ -3,10 +3,12 @@ package com.iamrutra.user_service.controller;
 import com.iamrutra.user_service.dto.User;
 import com.iamrutra.user_service.dto.UserRequest;
 import com.iamrutra.user_service.dto.UserResponse;
+import com.iamrutra.user_service.service.RequestCounterService;
 import com.iamrutra.user_service.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("users")
@@ -26,6 +30,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final RequestCounterService requestCounterService;
 
     @GetMapping("/getAll")
     public Page<User> getAllUsers(
@@ -46,6 +51,19 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> findUserById(@PathVariable("id") int id){
+        int requestCount = requestCounterService.incrementRequestCount(id);
+
+        if (requestCount > 100) {
+            log.info("Request from cache");
+            return findUserByIdCached(id);
+        }
+
+        log.info("Request from db");
+        return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @Cacheable(value = "userCache", key = "#id", unless = "#requestCounterService.incrementRequestCount(#id) <= 100")
+    public ResponseEntity<User> findUserByIdCached(int id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
