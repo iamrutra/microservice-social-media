@@ -17,8 +17,8 @@ public class EventHandler {
 
     private final JavaMailSender mailSender;
 
-    @KafkaListener(topics = "comment-topic", groupId = "notification-service")
-    public void NewCommentHandler(CommentEvent event){
+    @KafkaListener(topics = "comment-topic", groupId = "notification-service", containerFactory = "kafkaListenerContainerFactory")
+    public void newCommentHandler(CommentEvent event){
         log.info("Received message: " + event);
         MimeMessagePreparator messagePreparator = mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
@@ -31,7 +31,7 @@ public class EventHandler {
     }
 
     @KafkaListener(topics = "like-topic", groupId = "notification-service")
-    public void NewLikeHandler(LikeEvent event){
+    public void newLikeHandler(LikeEvent event){
         MimeMessagePreparator messagePreparator = mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
             messageHelper.setFrom("iamrutra@gmail.com");
