@@ -2,7 +2,6 @@ package com.iamrutra.user_service.service;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.iamrutra.user_service.bucket.BucketName;
-import com.iamrutra.user_service.dto.Status;
 import com.iamrutra.user_service.dto.UserRequest;
 import com.iamrutra.user_service.dto.UserResponse;
 import com.iamrutra.user_service.fileStore.FileStore;
@@ -212,7 +211,7 @@ public class UserService {
         return userMapper.mapToUserResponseList(user.getFollowing());
     }
 
-    public User updateUser(int id, UserRequest request) {
+    public UserResponse updateUser(int id, UserRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("UserRequest cannot be null");
         }
@@ -243,10 +242,9 @@ public class UserService {
             throw new IllegalArgumentException("Keycloak ID is not set for the user");
         }
 
-        // Обновляем пользователя в Keycloak, передавая только измененные данные
         updateUserInKeycloak(keycloakId, request, getAdminAccessToken());
 
-        return user;
+        return userMapper.mapToUserResponse(user);
     }
 
     private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
@@ -330,7 +328,7 @@ public class UserService {
     }
 
     public List<User> findConnectedUsers() {
-        return userRepository.findAllByStatus(Status.ONLINE);
+        return userRepository.findAllByStatus("ONLINE");
     }
 }
 

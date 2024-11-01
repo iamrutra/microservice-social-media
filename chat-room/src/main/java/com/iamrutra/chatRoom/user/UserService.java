@@ -2,6 +2,7 @@ package com.iamrutra.chatRoom.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
@@ -12,13 +13,13 @@ public class UserService {
     private final UserClient userClient;
 
     public void saveUser(User user) {
-        user.setStatus(Status.ONLINE);
+        user.setStatus("ONLINE");
         userClient.updateUser(user.getId(), user);
     }
     public void disconnectUser(User user) {
         var storedUser = userClient.findUserById(user.getId());
         if(storedUser != null) {
-            storedUser.setStatus(Status.OFFLINE);
+            storedUser.setStatus("OFFLINE");
             userClient.updateUser(user.getId(), storedUser);
         }
     }

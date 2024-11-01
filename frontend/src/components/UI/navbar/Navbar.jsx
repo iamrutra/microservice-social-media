@@ -5,7 +5,7 @@ import GatewayService from "../../../API/GatewayService";
 
 const Navbar = () => {
     const [isTokenValid, setIsTokenValid] = useState(null);
-    const userId = localStorage.getItem('userId'); // Получаем userId из localStorage
+    const userId = localStorage.getItem('userId');
 
 
     useEffect(() => {
@@ -33,6 +33,7 @@ const Navbar = () => {
                 <>
                     <Link to={"/feeds"}>Feeds</Link>
                     <Link to={"/users"}>Search</Link>
+                    <Link to={"/direct"}>Direct</Link>
                     <Link to={`/myProfile/${userId}`}>Profile</Link>
                     <Link to={'/logout'}>Log out</Link>
                 </>

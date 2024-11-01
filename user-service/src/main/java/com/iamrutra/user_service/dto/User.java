@@ -32,7 +32,7 @@ public class User {
     private String email;
     private String password;
     private String profileImageLink;
-    private Status status;
+    private String status;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

@@ -6,6 +6,7 @@ import RegisterPage from "../pages/RegisterPage";
 import MyProfile from "../pages/MyProfile";
 import Logout from "../pages/Logout";
 import FeedsPage from "../pages/FeedsPage";
+import DirectPage from "../pages/DirectPage";
 
 
 export const privateRoutes = [
@@ -13,6 +14,7 @@ export const privateRoutes = [
     { path: '/myProfile/:id', component: <MyProfile /> },
     { path: '/logout', component: <Logout /> },
     { path: '/feeds', component: <FeedsPage /> },
+    { path: '/direct', component: <DirectPage /> },
 ]
 
 export const publicRoutes = [

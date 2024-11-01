@@ -13,5 +13,5 @@ public class User {
     private int id;
     private String username;
     private String fullName;
-    private Status status;
+    private String status;
 }
