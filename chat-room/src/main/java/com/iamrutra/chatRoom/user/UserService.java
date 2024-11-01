@@ -9,20 +9,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserClient userClient;
 
     public void saveUser(User user) {
         user.setStatus(Status.ONLINE);
-        userRepository.save(user);
+        userClient.updateUser(user.getId(), user);
     }
     public void disconnectUser(User user) {
-        var storedUser = userRepository.findByUsername(user.getUsername());
+        var storedUser = userClient.findUserById(user.getId());
         if(storedUser != null) {
             storedUser.setStatus(Status.OFFLINE);
-            userRepository.save(storedUser);
+            userClient.updateUser(user.getId(), storedUser);
         }
     }
     public List<User> findConnectedUsers() {
-        return userRepository.findAllByStatus(Status.ONLINE);
+        return userClient.findConnectedUsers();
     }
 }

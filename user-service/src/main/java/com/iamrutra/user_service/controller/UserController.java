@@ -132,4 +132,9 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable("id") int id, @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
+
+    @GetMapping("/findConnectedUsers")
+    public List<User> findConnectedUsers() {
+        return userService.findConnectedUsers();
+    }
 }

@@ -12,4 +12,4 @@ springdoc:
 server:
   servlet:
     context-path: /api/v1/
-  port: 8050
+  port: 8040

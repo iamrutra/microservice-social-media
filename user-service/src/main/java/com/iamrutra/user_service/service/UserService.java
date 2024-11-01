@@ -2,6 +2,7 @@ package com.iamrutra.user_service.service;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.iamrutra.user_service.bucket.BucketName;
+import com.iamrutra.user_service.dto.Status;
 import com.iamrutra.user_service.dto.UserRequest;
 import com.iamrutra.user_service.dto.UserResponse;
 import com.iamrutra.user_service.fileStore.FileStore;
@@ -326,6 +327,10 @@ public class UserService {
         }
 
         return null;
+    }
+
+    public List<User> findConnectedUsers() {
+        return userRepository.findAllByStatus(Status.ONLINE);
     }
 }
 

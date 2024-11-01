@@ -7,12 +7,9 @@ import lombok.*;
 
 @Getter
 @Setter
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    @Id
-    @GeneratedValue
     private int id;
     private String username;
     private String fullName;
