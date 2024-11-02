@@ -55,15 +55,15 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User findById(int id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserResponse findById(int id) {
+        return userMapper.mapToUserResponse(userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found")));
     }
 
     public String uploadUserImage(int userId, MultipartFile file) {
         isFileEmpty(file);
         isImage(file);
-        User user = findById(userId);
+        User user = userMapper.mapToUser(findById(userId));
 
         Map<String, String> metadata = extractMetadata(file);
         String path = String.format("%s/%s", BucketName.PROFILE_IMAGE.getBucketName(), user.getId());
@@ -115,7 +115,7 @@ public class UserService {
     }
 
     public byte[] downloadUserImage(int userId) {
-        User user = findById(userId);
+        User user = userMapper.mapToUser(findById(userId));
         if (user.getProfileImageLink() == null) {
             throw new IllegalStateException("User does not have a profile image");
         }
@@ -234,6 +234,9 @@ public class UserService {
         if (request.password() != null && !request.password().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.password()));
         }
+        if (request.status() != null && !request.status().isEmpty()) {
+            user.setStatus(request.status());
+        }
 
         userRepository.save(user);
 
@@ -327,8 +330,8 @@ public class UserService {
         return null;
     }
 
-    public List<User> findConnectedUsers() {
-        return userRepository.findAllByStatus("ONLINE");
+    public List<UserResponse> findConnectedUsers() {
+        return userMapper.mapToUserResponseList(userRepository.findAllByStatus("ONLINE"));
     }
 }
 

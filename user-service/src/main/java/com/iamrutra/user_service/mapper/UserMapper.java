@@ -17,6 +17,18 @@ public class UserMapper {
                 .password(request.password())
                 .dateOfBirth(request.dateOfBirth())
                 .fullName(request.fullName())
+                .profileImageLink(request.profileImageLink())
+                .build();
+    }
+    public User mapToUser(UserResponse request) {
+        return User.builder()
+                .id(request.getId())
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .dateOfBirth(request.getDateOfBirth())
+                .fullName(request.getFullName())
+                .profileImageLink(request.getProfileImageLink())
                 .build();
     }
 
@@ -38,6 +50,7 @@ public class UserMapper {
                 .profileImageLink(user.getProfileImageLink())
 //                .following(user.following())
 //                .followers(user.followers())
+                .status(user.getStatus())
                 .roles(user.getRoles())
                 .isLocked(user.isLocked())
                 .isEnabled(user.isEnabled())

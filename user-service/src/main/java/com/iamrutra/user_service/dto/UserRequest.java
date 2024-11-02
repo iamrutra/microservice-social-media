@@ -17,11 +17,13 @@ public record UserRequest(
         @UniqueElements(message = "Username already exists")
         String username,
         String keycloakId,
+        String status,
         String fullName,
         LocalDate dateOfBirth,
         String password,
         @Email(message = "Email should be valid")
-        String email
+        String email,
+        String profileImageLink
         ) {
 
 }

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageService chatMessageService;
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @MessageMapping("/chat")
     public void processMessage(
             @Payload ChatMessage chatMessage
@@ -27,7 +29,6 @@ public class ChatController {
                 String.valueOf(chatMessage.getRecipientId()),
                 "/queue/messages",
                 ChatNotification.builder()
-                        .chatId(savedMsg.getChatId())
                         .senderId(savedMsg.getSenderId())
                         .recipientId(savedMsg.getRecipientId())
                         .content(savedMsg.getContent())
@@ -35,6 +36,7 @@ public class ChatController {
         );
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/messages/{senderId}/{recipientId}")
     public ResponseEntity<List<ChatMessage>> findChatMessages(
             @PathVariable("senderId") int senderId,

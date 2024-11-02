@@ -29,6 +29,7 @@ public class UserResponse {
     private List<User> following;
     private List<User> followers;
     private List<String> roles;
+    private String status;
     private boolean isLocked;
     private boolean isEnabled;
 }

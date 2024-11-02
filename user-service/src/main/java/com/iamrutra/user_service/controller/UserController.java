@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findUserById(@PathVariable("id") int id){
+    public ResponseEntity<UserResponse> findUserById(@PathVariable("id") int id){
         int requestCount = requestCounterService.incrementRequestCount(id);
 
         if (requestCount > 100) {
@@ -63,7 +63,7 @@ public class UserController {
     }
 
     @Cacheable(value = "userCache", key = "#id", unless = "#requestCounterService.incrementRequestCount(#id) <= 100")
-    public ResponseEntity<User> findUserByIdCached(int id) {
+    public ResponseEntity<UserResponse> findUserByIdCached(int id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
@@ -134,7 +134,7 @@ public class UserController {
     }
 
     @GetMapping("/findConnectedUsers")
-    public List<User> findConnectedUsers() {
+    public List<UserResponse> findConnectedUsers() {
         return userService.findConnectedUsers();
     }
 }

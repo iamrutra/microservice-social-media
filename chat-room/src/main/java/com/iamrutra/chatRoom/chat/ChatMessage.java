@@ -1,6 +1,7 @@
 package com.iamrutra.chatRoom.chat;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import java.util.Date;
 @Entity
 public class ChatMessage {
     @Id
+    @GeneratedValue
     private int id;
     private String chatId;
     private int senderId;
