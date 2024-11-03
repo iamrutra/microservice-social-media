@@ -4,6 +4,7 @@ import SockJs from "sockjs-client";
 import UserService from "../API/UserService";
 import ChatRoomService from "../API/ChatRoomService";
 import styles from '../styles/DirectPage.module.css';
+import {wait} from "@testing-library/user-event/dist/utils";
 
 const DirectPage = () => {
 
@@ -17,13 +18,15 @@ const DirectPage = () => {
     const chatAreaRef = useRef(null);
     const messageInput = document.getElementById('message');
     const stompClientRef = useRef(null);
+    const [messages, setMessages] = useState([]);
+
 
     let hidden = document.querySelectorAll('.hidden');
     hidden.forEach(item => {
         item.style.display = 'none';
     });
 
-    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [selectedUserId, setSelectedUserId] = useState(0);
 
     useEffect(() => {
         UserService.getUser(userId).then(response => {
@@ -35,10 +38,22 @@ const DirectPage = () => {
         if (chatAreaRef.current) {
             chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
         }
-        connect();
     }, [userId]);
 
-    console.log('JWT Token:', jwtToken);
+    useEffect(() => {
+        console.log('Username+_+_+_+_+_+_+_+_+_+_+_+_+:', username);
+        if (username) {
+            connect();
+        }
+    }, [username]);
+
+    useEffect(() => {
+        if (selectedUserId) {
+            console.log('Selected User ID has changed:', selectedUserId);
+            fetchAndDisplayUserChat(selectedUserId);
+        }
+    }, [selectedUserId]);
+
     console.log('User:', user);
     console.log('Username:', username);
     console.log('Full Name:', fullName);
@@ -52,7 +67,7 @@ const DirectPage = () => {
     }
 
     function onConnected() {
-        stompClientRef.current.subscribe(`/user/${username}/queue/messages`, onMessageReceived);
+        stompClientRef.current.subscribe(`/user/${parseInt(userId)}/queue/messages`, onMessageReceived);
         stompClientRef.current.subscribe(`/topic/public`, onMessageReceived);
 
         stompClientRef.current.send(
@@ -99,6 +114,7 @@ const DirectPage = () => {
             userImage.className = styles.profileImage;
         } else {
             userImage.src = 'http://localhost:8010/api/v1/users/defaultPfp/image/download';
+            userImage.className = styles.profileImage;
         }
         userImage.alt = 'User Image';
 
@@ -134,12 +150,10 @@ const DirectPage = () => {
 
         console.log('Clicked User:', clickedUser);
         setSelectedUserId(parseInt(clickedUser.id));
-        console.log('Selected User ID:', selectedUserId);
-
-        fetchAndDisplayUserChat(selectedUserId).then();
     }
 
     async function fetchAndDisplayUserChat(selectedUserId) {
+        console.log('Selected User ID:', selectedUserId);
         if (!chatAreaRef.current || !selectedUserId) return;
 
         const userIdNum = parseInt(userId, 10) || 0;
@@ -153,6 +167,7 @@ const DirectPage = () => {
         try {
             const userChatResponse = await fetch(`http://localhost:8040/messages/${userIdNum}/${selectedUserIdNum}`);
             const userChat = await userChatResponse.json();
+            console.log('User Chat:', userChat);
             chatAreaRef.current.innerHTML = '';
             userChat.forEach(chat => {
                 displayMessage(chat.senderId, chat.content);
@@ -202,26 +217,31 @@ const DirectPage = () => {
     }
 
     async function onMessageReceived(payload) {
-        await findAndDisplayConnectedUsers();
         const message = JSON.parse(payload.body);
-        if(selectedUserId && selectedUserId === message.senderId) {
+
+        // Add the message to the state messages
+        setMessages(prevMessages => [...prevMessages, message]);
+
+        // Only display the message if the selected user is the sender
+        if (selectedUserId && selectedUserId === message.senderId) {
+            displayMessage(message.senderId, message.content);
+            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+        } else if (selectedUserId && selectedUserId === message.recipientId) {
+            // If the current user is the recipient, display the message
             displayMessage(message.senderId, message.content);
             chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
         }
 
-        if(selectedUserId) {
-            document.querySelector(`#${selectedUserId}`).classList.add('active');
-        } else {
-            messageFormRef.current.classList.add('hidden');
-        }
-
-        const notifiedUser = document.querySelector(`#${message.senderId}`);
+        // Update active user
+        const notifiedUser = document.getElementById(message.senderId);
         if (notifiedUser && !notifiedUser.classList.contains('active')) {
             const nbrMsg = notifiedUser.querySelector('.nbr-msg');
             nbrMsg.classList.remove('hidden');
             nbrMsg.textContent = '';
         }
     }
+
+
 
 
     return (
@@ -240,6 +260,12 @@ const DirectPage = () => {
 
                 <div className="chat-area">
                     <div className="chat-area" ref={chatAreaRef} id="chat-messages">
+                        {messages.map((msg, index) => (
+                            <div key={index}
+                                 className={`message ${msg.senderId === parseInt(userId) ? 'sender' : 'receiver'}`}>
+                                <p>{msg.content}</p>
+                            </div>
+                        ))}
                     </div>
 
                     <form id="messageForm" ref={messageFormRef} name="messageForm" className="hidden">

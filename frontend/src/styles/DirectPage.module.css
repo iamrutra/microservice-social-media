@@ -5,3 +5,13 @@
     border: 2px solid green;
     margin-bottom: 15px;
 }
+
+.nbr-msg {
+    margin-left: 10px;
+    background-color: #f8fa6f;
+    color: white;
+    padding: 5px;
+    width: 10px;
+    border-radius: 50%;
+    height: 10px;
+}
