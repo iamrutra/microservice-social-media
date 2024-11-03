@@ -4,11 +4,11 @@ import SockJs from "sockjs-client";
 import UserService from "../API/UserService";
 import ChatRoomService from "../API/ChatRoomService";
 import styles from '../styles/DirectPage.module.css';
-import {wait} from "@testing-library/user-event/dist/utils";
 
 const DirectPage = () => {
 
     const userId = localStorage.getItem('userId');
+    console.log('User ID:', parseInt(userId));
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
     const [fullName, setFullName] = useState('');
@@ -19,14 +19,10 @@ const DirectPage = () => {
     const messageInput = document.getElementById('message');
     const stompClientRef = useRef(null);
     const [messages, setMessages] = useState([]);
+    const selectedUserRef = useRef(null);
 
 
-    let hidden = document.querySelectorAll('.hidden');
-    hidden.forEach(item => {
-        item.style.display = 'none';
-    });
-
-    const [selectedUserId, setSelectedUserId] = useState(0);
+    const [selectedUserId, setSelectedUserId] = useState(null);
 
     useEffect(() => {
         UserService.getUser(userId).then(response => {
@@ -50,7 +46,7 @@ const DirectPage = () => {
     useEffect(() => {
         if (selectedUserId) {
             console.log('Selected User ID has changed:', selectedUserId);
-            fetchAndDisplayUserChat(selectedUserId);
+            fetchAndDisplayUserChat(selectedUserId).then();
         }
     }, [selectedUserId]);
 
@@ -84,13 +80,12 @@ const DirectPage = () => {
         console.log('Connected Users:', connectedUsers);
         connectedUsers = connectedUsers.filter(user => user.username !== username);
         const connectedUsersList = document.getElementById('connectedUsers');
-        connectedUsersList.style.listStyle = 'none';
         connectedUsersList.innerHTML = '';
         connectedUsers.forEach((user, index) => {
             appendUserElement(user, connectedUsersList);
             if (index < connectedUsers.length - 1) {
                 const separator = document.createElement('li');
-                separator.classList.add('separator');
+                separator.classList.add(styles.separator);
                 connectedUsersList.appendChild(separator);
             }
         });
@@ -99,12 +94,8 @@ const DirectPage = () => {
     function appendUserElement(user, connectedUsersList) {
         const listItem = document.createElement('li');
 
-        listItem.style.display = 'flex';
-        listItem.style.alignItems = 'center';
-        listItem.style.padding = '10px';
-        listItem.style.cursor = 'pointer';
 
-        listItem.classList.add('user-item');
+        listItem.classList.add(styles.userItem);
         listItem.id = user.id;
 
         const userImage = document.createElement('img');
@@ -119,12 +110,11 @@ const DirectPage = () => {
         userImage.alt = 'User Image';
 
         const userSpan = document.createElement('span');
-        userSpan.style.marginLeft = '10px';
         userSpan.textContent = user.fullName;
 
         const receivedMsgs = document.createElement('span');
 
-        receivedMsgs.classList.add('nbr-msg', 'hidden');
+        receivedMsgs.classList.add(styles.nbrMsg, styles.hidden);
 
         listItem.appendChild(userImage);
         listItem.appendChild(userSpan);
@@ -137,19 +127,19 @@ const DirectPage = () => {
 
     function userItemClick(event) {
         document.querySelectorAll('.user-item').forEach(item => {
-            item.classList.remove('active');
+            item.classList.remove(styles.active);
         });
 
         if (messageFormRef.current) {
-            messageFormRef.current.classList.remove('hidden');
-            messageFormRef.current.style.display = 'block';
+            messageFormRef.current.classList.remove(styles.hidden);
         }
 
         const clickedUser = event.currentTarget;
-        clickedUser.classList.add('active');
+        clickedUser.classList.add(styles.active);
 
         console.log('Clicked User:', clickedUser);
         setSelectedUserId(parseInt(clickedUser.id));
+        selectedUserRef.current = parseInt(clickedUser.id);
     }
 
     async function fetchAndDisplayUserChat(selectedUserId) {
@@ -181,11 +171,14 @@ const DirectPage = () => {
     function displayMessage(senderId, content) {
         if (!chatAreaRef.current) return;
         const messageContainer = document.createElement('div');
-        messageContainer.classList.add('message', senderId === parseInt(userId) ? 'sender' : 'receiver');
+        messageContainer.classList.add(styles.message, senderId === parseInt(userId) ? styles.sender : styles.receiver);
         const message = document.createElement('p');
         message.textContent = content;
         messageContainer.appendChild(message);
         chatAreaRef.current.appendChild(messageContainer);
+        if (chatAreaRef.current) {
+            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+        }
     }
 
     function onError(error) {
@@ -209,7 +202,7 @@ const DirectPage = () => {
             stompClientRef.current.send("/app/chat", {}, JSON.stringify(chatMessage));
             displayMessage(parseInt(userId), messageContent);
             messageInput.value = '';
-            if (chatAreaRef.current) {  // Null check here
+            if (chatAreaRef.current) {
                 chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
             }
         }
@@ -218,26 +211,23 @@ const DirectPage = () => {
 
     async function onMessageReceived(payload) {
         const message = JSON.parse(payload.body);
-
-        // Add the message to the state messages
-        setMessages(prevMessages => [...prevMessages, message]);
-
-        // Only display the message if the selected user is the sender
-        if (selectedUserId && selectedUserId === message.senderId) {
+        console.log('Received Message:', message);
+        const currentSelectedUserId = selectedUserRef.current;
+        if (
+            (message.senderId === currentSelectedUserId && message.recipientId === parseInt(userId)) ||
+            (message.senderId === parseInt(userId) && message.recipientId === currentSelectedUserId)
+        ) {
             displayMessage(message.senderId, message.content);
-            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-        } else if (selectedUserId && selectedUserId === message.recipientId) {
-            // If the current user is the recipient, display the message
-            displayMessage(message.senderId, message.content);
-            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
         }
 
-        // Update active user
         const notifiedUser = document.getElementById(message.senderId);
         if (notifiedUser && !notifiedUser.classList.contains('active')) {
             const nbrMsg = notifiedUser.querySelector('.nbr-msg');
-            nbrMsg.classList.remove('hidden');
+            nbrMsg.classList.remove(styles.hidden);
             nbrMsg.textContent = '';
+        }
+        if (chatAreaRef.current) {
+            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
         }
     }
 
@@ -246,31 +236,34 @@ const DirectPage = () => {
 
     return (
         <div>
-            <div className="chat-container" id="chat-page">
-                <div className="users-list">
-                    <div className="users-list-container">
+            <div className={styles.chatContainer} id="chat-page">
+                <div className={styles.usersList}>
+                    <div className={styles.usersListContainer}>
                         <h2>Online Users</h2>
-                        <ul id="connectedUsers">
-                        </ul>
+                        <ul id="connectedUsers"></ul>
                     </div>
                     <div>
                         <p id="connected-user-fullname"></p>
                     </div>
                 </div>
 
-                <div className="chat-area">
-                    <div className="chat-area" ref={chatAreaRef} id="chat-messages">
+                <div className={styles.chatArea}>
+                    <div className={styles.chatMessages} ref={chatAreaRef} id="chat-messages">
                         {messages.map((msg, index) => (
-                            <div key={index}
-                                 className={`message ${msg.senderId === parseInt(userId) ? 'sender' : 'receiver'}`}>
+                            <div
+                                key={index}
+                                className={`${styles.message} ${
+                                    msg.senderId === parseInt(userId) ? styles.sender : styles.receiver
+                                }`}
+                            >
                                 <p>{msg.content}</p>
                             </div>
                         ))}
                     </div>
 
-                    <form id="messageForm" ref={messageFormRef} name="messageForm" className="hidden">
-                        <div className="message-input">
-                            <input autoComplete="off" type="text" id="message" placeholder="Type your message..."/>
+                    <form id="messageForm" ref={messageFormRef} className={styles.hidden}>
+                        <div className={styles.messageInput}>
+                            <input autoComplete="off" type="text" id="message" placeholder="Type your message..." />
                             <button onClick={sendMessage}>Send</button>
                         </div>
                     </form>
@@ -278,6 +271,6 @@ const DirectPage = () => {
             </div>
         </div>
     );
-};
+}
 
-export default DirectPage;
+    export default DirectPage;

@@ -4,9 +4,10 @@ import {parse} from "@fortawesome/fontawesome-svg-core";
 
 const handleLogout = () => {
     UserService.getUser(parseInt(localStorage.getItem("userId"))).then((response) => {
-        const user = response.data;
+        const user = response;
         user.status = "OFFLINE";
-        UserService.updateUser(parseInt(localStorage.getItem("userId")), user).then((response) => {
+        console.log(user);
+        UserService.updateUser(user.id, user).then((response) => {
             console.log(response.data);
         });
     });
@@ -17,7 +18,7 @@ const Logout = () => {
     return (
         <div>
             {handleLogout()}
-            {window.location.href = 'http://localhost:3000'}
+            {window.location.href = "/"}
         </div>
     );
 };

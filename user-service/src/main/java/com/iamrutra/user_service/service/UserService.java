@@ -222,7 +222,7 @@ public class UserService {
         if (request.username() != null && !request.username().isEmpty()) {
             user.setUsername(request.username());
         }
-        if (request.email() != null && !request.email().isEmpty()) {
+        if (request.email() != null && !request.email().isEmpty() && !request.email().equals(user.getEmail())) {
             user.setEmail(request.email());
         }
         if (request.fullName() != null && !request.fullName().isEmpty()) {
@@ -261,21 +261,30 @@ public class UserService {
 
         if (request.username() != null && !request.username().isEmpty()) {
             userUpdates.put("username", request.username());
+        } else {
+            userUpdates.put("username", userMapper.mapToUser(findById(request.id())).getUsername());
         }
-        if (request.email() != null && !request.email().isEmpty()) {
+
+        if (request.email() != null && !request.email().isEmpty() && !request.email().equals(request.email())) {
             userUpdates.put("email", request.email());
+        } else {
+            userUpdates.put("email", userMapper.mapToUser(findById(request.id())).getEmail());
         }
+
         userUpdates.put("enabled", true);
 
         Map<String, Object> attributes = new HashMap<>();
+
         if (request.fullName() != null && !request.fullName().isEmpty()) {
             attributes.put("fullName", List.of(request.fullName()));
+        } else {
+            attributes.put("fullName", List.of(userMapper.mapToUser(findById(request.id())).getFullName()));
         }
+
         if (request.dateOfBirth() != null) {
             attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
-        }
-        if (!attributes.isEmpty()) {
-            userUpdates.put("attributes", attributes);
+        } else {
+            attributes.put("dateOfBirth", List.of(userMapper.mapToUser(findById(request.id())).getDateOfBirth().toString()));
         }
 
         if (request.password() != null && !request.password().isEmpty()) {
@@ -283,6 +292,14 @@ public class UserService {
             Map<String, Object> passwordMap = new HashMap<>();
             passwordMap.put("type", "password");
             passwordMap.put("value", request.password());
+            passwordMap.put("temporary", false);
+            credentials.add(passwordMap);
+            userUpdates.put("credentials", credentials);
+        } else {
+            List<Map<String, Object>> credentials = new ArrayList<>();
+            Map<String, Object> passwordMap = new HashMap<>();
+            passwordMap.put("type", "password");
+            passwordMap.put("value", userMapper.mapToUser(findById(request.id())).getPassword());
             passwordMap.put("temporary", false);
             credentials.add(passwordMap);
             userUpdates.put("credentials", credentials);

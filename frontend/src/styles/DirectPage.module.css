@@ -15,3 +15,188 @@
     border-radius: 50%;
     height: 10px;
 }
+
+.chatContainer {
+    display: flex;
+    max-width: 100%;
+    min-width: 50%;
+    min-height: 50%;
+    max-height: 100%;
+    margin: 20px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.usersList {
+    flex: 1;
+    border-right: 1px solid #ccc;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: green;
+    color: #fff;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.usersListContainer {
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.usersList h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.usersList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.userItem {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    cursor: pointer;
+    color: white;
+}
+
+.userItem.active {
+    background-color: #d3fbd3;
+    color: #4f4f4f;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.userItem img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.userItem span {
+    font-weight: bold;
+    color: white;
+}
+
+.separator {
+    height: 1px;
+    background-color: #ccc;
+    margin: 10px 0;
+}
+
+.chatArea {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.message {
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.chatMessages {
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+.message p {
+    padding: 0 12px;
+    border-radius: 15px;
+    word-wrap: break-word;
+}
+
+.sender {
+    background-color: green;
+    color: white;
+    align-self: flex-end;
+}
+
+.receiver {
+    background-color: #ecf0f1;
+    color: #333;
+    align-self: flex-start;
+}
+
+.messageInput {
+    margin-top: auto;
+    display: flex;
+}
+
+.messageInput input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.messageInput button {
+    padding: 10px;
+    border: none;
+    background-color: green;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.userForm {
+    max-width: 400px;
+    padding: 40px;
+    box-sizing: border-box;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.userForm h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.userForm label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.userForm input {
+    width: 100%;
+    padding: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.userForm button {
+    padding: 12px;
+    border: none;
+    background-color: green;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.hidden {
+    display: none;
+}
+
+a.logout {
+    color: #fff;
+    text-decoration: none;
+}
