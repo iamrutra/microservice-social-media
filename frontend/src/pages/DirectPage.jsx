@@ -1,43 +1,37 @@
-import React, {useEffect, useState, useRef} from 'react';
-import {Stomp} from "@stomp/stompjs";
+import React, { useEffect, useState, useRef } from 'react';
+import { Stomp } from "@stomp/stompjs";
 import SockJs from "sockjs-client";
 import UserService from "../API/UserService";
 import ChatRoomService from "../API/ChatRoomService";
 import styles from '../styles/DirectPage.module.css';
+import ChatImageDropzone from "../components/ChatImageDropzone";
 
 const DirectPage = () => {
-
     const userId = localStorage.getItem('userId');
-    console.log('User ID:', parseInt(userId));
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
     const [fullName, setFullName] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
     const jwtToken = localStorage.getItem('jwtToken');
 
     const messageFormRef = useRef(null);
     const chatAreaRef = useRef(null);
-    const messageInput = document.getElementById('message');
+    const messageInputRef = useRef(null);
     const stompClientRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const selectedUserRef = useRef(null);
-
 
     const [selectedUserId, setSelectedUserId] = useState(null);
 
     useEffect(() => {
         UserService.getUser(userId).then(response => {
-            console.log('User:', response);
             setUser(response);
             setUsername(response.username);
             setFullName(response.fullName);
         });
-        if (chatAreaRef.current) {
-            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-        }
     }, [userId]);
 
     useEffect(() => {
-        console.log('Username+_+_+_+_+_+_+_+_+_+_+_+_+:', username);
         if (username) {
             connect();
         }
@@ -45,24 +39,17 @@ const DirectPage = () => {
 
     useEffect(() => {
         if (selectedUserId) {
-            console.log('Selected User ID has changed:', selectedUserId);
-            fetchAndDisplayUserChat(selectedUserId).then();
+            fetchAndDisplayUserChat(selectedUserId);
         }
     }, [selectedUserId]);
 
-    console.log('User:', user);
-    console.log('Username:', username);
-    console.log('Full Name:', fullName);
-
-
     const connect = () => {
         const socket = new SockJs(`http://localhost:8040/ws`);
-        console.log('Socket:', socket);
         stompClientRef.current = Stomp.over(socket);
         stompClientRef.current.connect({}, onConnected, onError);
-    }
+    };
 
-    function onConnected() {
+    const onConnected = () => {
         stompClientRef.current.subscribe(`/user/${parseInt(userId)}/queue/messages`, onMessageReceived);
         stompClientRef.current.subscribe(`/topic/public`, onMessageReceived);
 
@@ -71,49 +58,40 @@ const DirectPage = () => {
             {},
             JSON.stringify({ id: parseInt(userId), username: username, fullName: fullName, status: 'ONLINE' })
         );
-        findAndDisplayConnectedUsers().then();
-    }
+        findAndDisplayConnectedUsers();
+    };
 
-    async function findAndDisplayConnectedUsers() {
-        const response = ChatRoomService.findAllConnectedUsers();
-        let connectedUsers = await response;
-        console.log('Connected Users:', connectedUsers);
-        connectedUsers = connectedUsers.filter(user => user.username !== username);
+    const findAndDisplayConnectedUsers = async () => {
+        const connectedUsers = await ChatRoomService.findAllConnectedUsers();
+        const filteredUsers = connectedUsers.filter(user => user.username !== username);
         const connectedUsersList = document.getElementById('connectedUsers');
         connectedUsersList.innerHTML = '';
-        connectedUsers.forEach((user, index) => {
+        filteredUsers.forEach((user, index) => {
             appendUserElement(user, connectedUsersList);
-            if (index < connectedUsers.length - 1) {
+            if (index < filteredUsers.length - 1) {
                 const separator = document.createElement('li');
                 separator.classList.add(styles.separator);
                 connectedUsersList.appendChild(separator);
             }
         });
-    }
+    };
 
-    function appendUserElement(user, connectedUsersList) {
+    const appendUserElement = (user, connectedUsersList) => {
         const listItem = document.createElement('li');
-
-
         listItem.classList.add(styles.userItem);
         listItem.id = user.id;
 
         const userImage = document.createElement('img');
-        if (user.profileImageLink !== null) {
-            console.log('User Image:', user.id);
-            userImage.src = `http://localhost:8010/api/v1/users/${user.id}/image/download`;
-            userImage.className = styles.profileImage;
-        } else {
-            userImage.src = 'http://localhost:8010/api/v1/users/defaultPfp/image/download';
-            userImage.className = styles.profileImage;
-        }
+        userImage.src = user.profileImageLink
+            ? `http://localhost:8010/api/v1/users/${user.id}/image/download`
+            : 'http://localhost:8010/api/v1/users/defaultPfp/image/download';
+        userImage.className = styles.profileImage;
         userImage.alt = 'User Image';
 
         const userSpan = document.createElement('span');
         userSpan.textContent = user.fullName;
 
         const receivedMsgs = document.createElement('span');
-
         receivedMsgs.classList.add(styles.nbrMsg, styles.hidden);
 
         listItem.appendChild(userImage);
@@ -121,43 +99,37 @@ const DirectPage = () => {
         listItem.appendChild(receivedMsgs);
 
         listItem.addEventListener('click', userItemClick);
-
         connectedUsersList.appendChild(listItem);
-    }
+    };
 
-    function userItemClick(event) {
-        document.querySelectorAll('.user-item').forEach(item => {
+    const userItemClick = (event) => {
+        const clickedUser = event.currentTarget;
+        console.log(clickedUser);
+        setSelectedUserId(parseInt(clickedUser.id));
+        selectedUserRef.current = parseInt(clickedUser.id);
+        if (clickedUser.querySelector(`.${styles.nbrMsg}`)) {
+            clickedUser.querySelector(`.${styles.nbrMsg}`).classList.add(styles.hidden);
+        }
+
+        document.querySelectorAll(`.${styles.userItem}`).forEach(item => {
             item.classList.remove(styles.active);
         });
+        clickedUser.classList.add(styles.active);
 
         if (messageFormRef.current) {
             messageFormRef.current.classList.remove(styles.hidden);
         }
+    };
 
-        const clickedUser = event.currentTarget;
-        clickedUser.classList.add(styles.active);
+    const fetchAndDisplayUserChat = async (selectedUserId) => {
+        const userIdNum = parseInt(userId, 10);
+        const selectedUserIdNum = parseInt(selectedUserId, 10);
 
-        console.log('Clicked User:', clickedUser);
-        setSelectedUserId(parseInt(clickedUser.id));
-        selectedUserRef.current = parseInt(clickedUser.id);
-    }
-
-    async function fetchAndDisplayUserChat(selectedUserId) {
-        console.log('Selected User ID:', selectedUserId);
-        if (!chatAreaRef.current || !selectedUserId) return;
-
-        const userIdNum = parseInt(userId, 10) || 0;
-        const selectedUserIdNum = parseInt(selectedUserId, 10) || 0;
-
-        if (!userIdNum || !selectedUserIdNum) {
-            console.error('Invalid userId or selectedUserId');
-            return;
-        }
+        if (!chatAreaRef.current || !userIdNum || !selectedUserIdNum) return;
 
         try {
             const userChatResponse = await fetch(`http://localhost:8040/messages/${userIdNum}/${selectedUserIdNum}`);
             const userChat = await userChatResponse.json();
-            console.log('User Chat:', userChat);
             chatAreaRef.current.innerHTML = '';
             userChat.forEach(chat => {
                 displayMessage(chat.senderId, chat.content);
@@ -166,31 +138,30 @@ const DirectPage = () => {
         } catch (error) {
             console.error('Error fetching user chat:', error);
         }
-    }
+    };
 
-    function displayMessage(senderId, content) {
+    const displayMessage = (senderId, content) => {
         if (!chatAreaRef.current) return;
+
         const messageContainer = document.createElement('div');
         messageContainer.classList.add(styles.message, senderId === parseInt(userId) ? styles.sender : styles.receiver);
+
         const message = document.createElement('p');
         message.textContent = content;
+
         messageContainer.appendChild(message);
         chatAreaRef.current.appendChild(messageContainer);
-        if (chatAreaRef.current) {
-            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-        }
-    }
+        chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+    };
 
-    function onError(error) {
+    const onError = (error) => {
         console.error('WebSocket connection error:', error);
-    }
+    };
 
-    function sendMessage(event) {
+    const sendMessage = async (event) => {
         event.preventDefault();
+        const messageContent = messageInputRef.current.value.trim();
 
-        const messageContent = messageInput.value.trim();
-        console.log('Stomp Client:', stompClientRef.current);
-        console.log(selectedUserId);
         if (messageContent && stompClientRef.current && selectedUserId) {
             const chatMessage = {
                 senderId: parseInt(userId),
@@ -198,41 +169,51 @@ const DirectPage = () => {
                 content: messageContent,
                 timestamp: new Date()
             };
-            console.log('Chat Message:', chatMessage);
+
+            // Send the message through WebSocket
             stompClientRef.current.send("/app/chat", {}, JSON.stringify(chatMessage));
             displayMessage(parseInt(userId), messageContent);
-            messageInput.value = '';
-            if (chatAreaRef.current) {
-                chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-            }
+            messageInputRef.current.value = '';
+            setSelectedFile(null);
         }
+    };
 
-    }
-
-    async function onMessageReceived(payload) {
+    const onMessageReceived = (payload) => {
         const message = JSON.parse(payload.body);
-        console.log('Received Message:', message);
         const currentSelectedUserId = selectedUserRef.current;
+
+        // Display received message
         if (
             (message.senderId === currentSelectedUserId && message.recipientId === parseInt(userId)) ||
             (message.senderId === parseInt(userId) && message.recipientId === currentSelectedUserId)
         ) {
             displayMessage(message.senderId, message.content);
+
+            // If there's a file to send and we have a message ID, upload the file
+            if (selectedFile && message.id) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+                fetch(`http://localhost:8040/${message.id}/file/upload`, {
+                    method: "POST",
+                    body: formData,
+                    headers: { Authorization: `Bearer ${jwtToken}` }
+                })
+                    .then(() => {
+                        alert("File uploaded successfully");
+                        setSelectedFile(null);
+                    })
+                    .catch(err => console.error("Upload error:", err));
+            }
         }
 
+        // Update the UI for notifications, if needed
         const notifiedUser = document.getElementById(message.senderId);
-        if (notifiedUser && !notifiedUser.classList.contains('active')) {
-            const nbrMsg = notifiedUser.querySelector('.nbr-msg');
+        if (notifiedUser && !notifiedUser.classList.contains(styles.active)) {
+            const nbrMsg = notifiedUser.querySelector(`.${styles.nbrMsg}`);
             nbrMsg.classList.remove(styles.hidden);
             nbrMsg.textContent = '';
         }
-        if (chatAreaRef.current) {
-            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-        }
-    }
-
-
-
+    };
 
     return (
         <div>
@@ -263,14 +244,22 @@ const DirectPage = () => {
 
                     <form id="messageForm" ref={messageFormRef} className={styles.hidden}>
                         <div className={styles.messageInput}>
-                            <input autoComplete="off" type="text" id="message" placeholder="Type your message..." />
+                            <input
+                                ref={messageInputRef}
+                                autoComplete="off"
+                                type="text"
+                                id="message"
+                                placeholder="Type your message..."
+                            />
+                            <ChatImageDropzone onFileSelected={setSelectedFile} />
                             <button onClick={sendMessage}>Send</button>
                         </div>
                     </form>
+                    {selectedFile && <p>Выбран файл: {selectedFile.name}</p>}
                 </div>
             </div>
         </div>
     );
-}
+};
 
-    export default DirectPage;
+export default DirectPage;

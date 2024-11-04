@@ -1,4 +1,4 @@
-package com.iamrutra.user_service.fileStore;
+package com.iamrutra.chatRoom.fileStore;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;

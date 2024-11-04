@@ -12,4 +12,6 @@ public class ChatNotification {
     private int senderId;
     private int recipientId;
     private String content;
+    private String file;
+    private int id;
 }

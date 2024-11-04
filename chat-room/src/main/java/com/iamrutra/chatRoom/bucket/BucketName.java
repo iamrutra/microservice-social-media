@@ -1,10 +1,10 @@
-package com.iamrutra.user_service.bucket;
+package com.iamrutra.chatRoom.bucket;
 
 import lombok.Getter;
 
 @Getter
 public enum BucketName {
-    PROFILE_IMAGE("iamrutra-social-media-user-service");
+    FILE("iamrutra-social-media-chat-service");
 
     private final String bucketName;
 

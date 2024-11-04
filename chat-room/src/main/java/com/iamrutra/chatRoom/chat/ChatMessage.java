@@ -23,5 +23,6 @@ public class ChatMessage {
     private int senderId;
     private int recipientId;
     private String content;
+    private String file;
     private Date timestamp;
 }

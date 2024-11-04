@@ -14,9 +14,10 @@ const AllUsers = () => {
                 try {
                     const data = await UserService.searchUsers(username);
                     console.log('Fetched Users:', data);
-                    setUsers(data);
+                    setUsers(Array.isArray(data) ? data : []);
                 } catch (error) {
                     console.error("Error fetching users:", error);
+                    setUsers([]);
                 }
             } else {
                 setUsers([]);
