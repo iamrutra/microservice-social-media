@@ -1,0 +1,7 @@
+**/AwsConfig.java
+
+*.log
+*.tmp
+*.swp
+.idea/
+*.iml

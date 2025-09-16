@@ -63,6 +63,8 @@ public class KeycloakService {
         // Добавление кастомного атрибута "fullName"
         Map<String, Object> attributesMap = new HashMap<>();
         attributesMap.put("fullName", userRequest.getFullName());
+        attributesMap.put("firstName", userRequest.getFullName());
+        attributesMap.put("lastName", userRequest.getFullName());
         attributesMap.put("dateOfBirth", userRequest.getDateOfBirth().toString());
 
         // Добавляем атрибуты в тело запроса

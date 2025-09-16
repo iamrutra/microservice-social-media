@@ -14,6 +14,7 @@ export const privateRoutes = [
     { path: '/myProfile/:id', component: <MyProfile /> },
     { path: '/logout', component: <Logout /> },
     { path: '/feeds', component: <FeedsPage /> },
+    { path: '/direct/:id', component: <DirectPage /> },
     { path: '/direct', component: <DirectPage /> },
 ]
 

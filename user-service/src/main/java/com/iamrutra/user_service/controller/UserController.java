@@ -44,6 +44,7 @@ public class UserController {
         return userService.findAllUsers(pageable);
     }
 
+
     @PostMapping("/register")
     public ResponseEntity<User> saveUser(@RequestBody UserRequest request) {
         return ResponseEntity.created(null).body(userService.saveUser(request));
@@ -93,10 +94,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public List<User> searchUsers(@RequestParam(required = false) String username) {
-        if (username == null || username.isEmpty()) {
-            return Collections.emptyList();
-        }
+    public Page<User> searchUsers(@RequestParam(required = false) String username) {
         return userService.findByUsernameContaining(username, 10);
     }
 

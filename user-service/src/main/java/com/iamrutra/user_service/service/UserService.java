@@ -61,6 +61,7 @@ public class UserService {
     }
 
     public String uploadUserImage(int userId, MultipartFile file) {
+        log.info("Uploading image to bucket");
         isFileEmpty(file);
         isImage(file);
         User user = userMapper.mapToUser(findById(userId));
@@ -144,8 +145,8 @@ public class UserService {
         }
     }
 
-    public List<User> findByUsernameContaining(String username, int limit) {
-        return userRepository.findByUsernameContainingIgnoreCase(username, PageRequest.of(0, limit));
+    public Page<User> findByUsernameContaining(String username, int limit) {
+        return userRepository.findByUsernameContaining(username.toLowerCase(), PageRequest.of(0, limit));
     }
 
     public User followUser(int followerId, int followingId) {
@@ -216,6 +217,8 @@ public class UserService {
             throw new IllegalArgumentException("UserRequest cannot be null");
         }
 
+        log.info("ID FOR CHECKING IS:" + id);
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -237,7 +240,13 @@ public class UserService {
         if (request.status() != null && !request.status().isEmpty()) {
             user.setStatus(request.status());
         }
+        if (request.profileImageLink() != null && !request.profileImageLink().isEmpty()) {
+            user.setProfileImageLink(request.profileImageLink());
+        }
 
+
+
+        log.info("USER SAVED: " + user.toString());
         userRepository.save(user);
 
         String keycloakId = user.getKeycloakId();
@@ -245,12 +254,14 @@ public class UserService {
             throw new IllegalArgumentException("Keycloak ID is not set for the user");
         }
 
-        updateUserInKeycloak(keycloakId, request, getAdminAccessToken());
+        if((request.password() != null && !request.password().isEmpty()) || (request.email() != null && !request.email().isEmpty())) {
+            updateUserInKeycloak(keycloakId, id, request, getAdminAccessToken());
+        }
 
         return userMapper.mapToUserResponse(user);
     }
 
-    private void updateUserInKeycloak(String keycloakId, UserRequest request, String token) {
+    private void updateUserInKeycloak(String keycloakId, int userId, UserRequest request, String token) {
         log.info("Updating user in Keycloak");
         log.info("Keycloak ID: " + keycloakId);
 
@@ -262,30 +273,17 @@ public class UserService {
         if (request.username() != null && !request.username().isEmpty()) {
             userUpdates.put("username", request.username());
         } else {
-            userUpdates.put("username", userMapper.mapToUser(findById(request.id())).getUsername());
+            userUpdates.put("username", userMapper.mapToUser(findById(userId)).getUsername());
         }
 
         if (request.email() != null && !request.email().isEmpty() && !request.email().equals(request.email())) {
             userUpdates.put("email", request.email());
         } else {
-            userUpdates.put("email", userMapper.mapToUser(findById(request.id())).getEmail());
+            userUpdates.put("email", userMapper.mapToUser(findById(userId)).getEmail());
         }
 
         userUpdates.put("enabled", true);
 
-        Map<String, Object> attributes = new HashMap<>();
-
-        if (request.fullName() != null && !request.fullName().isEmpty()) {
-            attributes.put("fullName", List.of(request.fullName()));
-        } else {
-            attributes.put("fullName", List.of(userMapper.mapToUser(findById(request.id())).getFullName()));
-        }
-
-        if (request.dateOfBirth() != null) {
-            attributes.put("dateOfBirth", List.of(request.dateOfBirth().toString()));
-        } else {
-            attributes.put("dateOfBirth", List.of(userMapper.mapToUser(findById(request.id())).getDateOfBirth().toString()));
-        }
 
         if (request.password() != null && !request.password().isEmpty()) {
             List<Map<String, Object>> credentials = new ArrayList<>();
@@ -299,7 +297,7 @@ public class UserService {
             List<Map<String, Object>> credentials = new ArrayList<>();
             Map<String, Object> passwordMap = new HashMap<>();
             passwordMap.put("type", "password");
-            passwordMap.put("value", userMapper.mapToUser(findById(request.id())).getPassword());
+            passwordMap.put("value", userMapper.mapToUser(findById(userId)).getPassword());
             passwordMap.put("temporary", false);
             credentials.add(passwordMap);
             userUpdates.put("credentials", credentials);

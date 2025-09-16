@@ -9,27 +9,28 @@ const AllUsers = () => {
 
 
     useEffect(() => {
-        const fetchUsers = async (username) => {
-            if (username) {
-                try {
-                    const data = await UserService.searchUsers(username);
-                    console.log('Fetched Users:', data);
-                    setUsers(Array.isArray(data) ? data : []);
-                } catch (error) {
-                    console.error("Error fetching users:", error);
-                    setUsers([]);
-                }
-            } else {
+    const fetchUsers = async (username) => {
+        if (username) {
+            try {
+                const data = await UserService.searchUsers(username);
+                setUsers(Array.isArray(data.content) ? data.content : []);
+                console.log(users)
+            } catch (error) {
+                console.error("Error fetching users:", error);
                 setUsers([]);
             }
-        };
-
-        fetchUsers('');
-
-        if (searchTerm) {
-            fetchUsers(searchTerm);
+        } else {
+            setUsers([]);
         }
-    }, [searchTerm]);
+    };
+
+    fetchUsers('');   // <-- вызываешь с пустой строкой
+
+    if (searchTerm) {
+        fetchUsers(searchTerm);   // <-- вызываешь с поиском
+    }
+}, [searchTerm]);
+
 
     useEffect(() => {
         const loadAuthorImages = async () => {

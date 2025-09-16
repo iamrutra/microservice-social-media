@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
+//import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -31,45 +31,46 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final PostRepository postRepository;
     private final UserClient userClient;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+//    private final KafkaTemplate<?, ?> kafkaTemplate;
+//    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public Integer createComment(CommentRequest request) {
             Post post = postRepository.findById(request.getPostId())
                     .orElseThrow(() -> new RuntimeException("Post not found"));
-            var comment = commentMapper.toComment(request);
+            var comment = commentMapper.toComment(request, post);
             UserRep user = userClient.findUserById(request.getUserId());
-            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId());
+//            sendNewCommentEvent(user.getUsername(), user.getEmail(), post.getUserId(), post.getId());
             post.setTotalComments(post.getTotalComments() + 1);
             postRepository.save(post);
             return commentRepository.save(comment).getId();
     }
-
-
-    @Async
-    public void sendNewCommentEvent(String sender, String authorEmail, int authorId, int postId) {
-        var event = new CommentEvent(
-                sender,
-                authorEmail,
-                authorId,
-                postId,
-                LocalDateTime.now()
-        );
-
-        kafkaTemplate.send("comment-topic", event);
-    }
-
-
-    @Async
-    public void sendNewLikeEvent(String sender, String authorEmail, int authorId, int postId) {
-        var event = new CommentEvent(
-                sender,
-                authorEmail,
-                authorId,
-                postId,
-                LocalDateTime.now()
-        );
-        kafkaTemplate.send("like-topic", event);
-    }
+//
+//
+//    @Async
+//    public void sendNewCommentEvent(String sender, String authorEmail, int authorId, int postId) {
+//        var event = new CommentEvent(
+//                sender,
+//                authorEmail,
+//                authorId,
+//                postId,
+//                LocalDateTime.now()
+//        );
+//
+//        kafkaTemplate.send("comment-topic", event);
+//    }
+//
+//
+//    @Async
+//    public void sendNewLikeEvent(String sender, String authorEmail, int authorId, int postId) {
+//        var event = new CommentEvent(
+//                sender,
+//                authorEmail,
+//                authorId,
+//                postId,
+//                LocalDateTime.now()
+//        );
+//        kafkaTemplate.send("like-topic", event);
+//    }
 
     public CommentResponse getComment(Integer id) {
         return commentRepository.findById(id).map(commentMapper::toCommentResponse)
@@ -134,7 +135,7 @@ public class CommentService {
     public String deleteAllCommentsByPostId(Integer postId) {
         List<Comment> comments = commentRepository.findAll();
         for(Comment comment: comments) {
-            if(comment.getPost().getId() == postId) {
+            if(comment.getPost().getId().equals(postId)) {
                 commentRepository.deleteById(comment.getId());
             }
         }

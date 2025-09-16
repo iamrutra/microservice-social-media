@@ -5,6 +5,7 @@ import com.iamrutra.post_service.fileStore.FileStore;
 import com.iamrutra.post_service.mapper.PostMapper;
 import com.iamrutra.post_service.model.Post;
 import com.iamrutra.post_service.model.PostRequest;
+import com.iamrutra.post_service.repository.CommentRepository;
 import com.iamrutra.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final FileStore fileStore;
+    private final CommentService commentService;
 
     public Integer createPost(PostRequest request) {
         Post post = postMapper.mapToPost(request);
@@ -43,6 +45,7 @@ public class PostService {
         if (!postRepository.existsById(id)) {
             throw new RuntimeException("Post with id " + id + " not found");
         }
+        commentService.deleteAllCommentsByPostId(id);
         postRepository.deleteById(id);
         return "Post deleted successfully";
     }

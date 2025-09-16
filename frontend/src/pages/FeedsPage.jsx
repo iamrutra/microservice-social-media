@@ -338,7 +338,7 @@ const FeedsPage = () => {
                                                 <h5>{comment.comment}</h5>
                                             </div>
 
-                                            <h5>Created at: {formatDate(comment.createdAt)}</h5>
+                                            <h5>Created at: {formatDate(comment.createdAt)}</h5> <br />
                                             {comment.userId === parseInt(userId) ? (
                                                 <button onClick={async () => {
                                                     const totalComments = document.getElementsByClassName('totalCommets');

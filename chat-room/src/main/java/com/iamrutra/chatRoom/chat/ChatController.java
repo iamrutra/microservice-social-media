@@ -1,5 +1,6 @@
 package com.iamrutra.chatRoom.chat;
 
+import com.iamrutra.chatRoom.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -63,5 +64,4 @@ public class ChatController {
     public byte[] downloadFile(@PathVariable("messageId") int messageId) {
         return chatMessageService.downloadFile(messageId);
     }
-
 }

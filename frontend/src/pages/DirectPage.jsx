@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useParams } from "react-router-dom";
 import { Stomp } from "@stomp/stompjs";
 import SockJs from "sockjs-client";
 import UserService from "../API/UserService";
@@ -7,6 +8,7 @@ import styles from '../styles/DirectPage.module.css';
 import ChatImageDropzone from "../components/ChatImageDropzone";
 
 const DirectPage = () => {
+    const { id } = useParams(); // Get the user ID from the URL
     const userId = localStorage.getItem('userId');
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
@@ -20,8 +22,7 @@ const DirectPage = () => {
     const stompClientRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const selectedUserRef = useRef(null);
-
-    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [selectedUserId, setSelectedUserId] = useState(parseInt(id)); // Set from URL param
 
     useEffect(() => {
         UserService.getUser(userId).then(response => {
@@ -35,11 +36,21 @@ const DirectPage = () => {
         if (username) {
             connect();
         }
+
+        return () => {
+            if (stompClientRef.current) {
+                stompClientRef.current.disconnect();
+            }
+        };
     }, [username]);
 
     useEffect(() => {
         if (selectedUserId) {
             fetchAndDisplayUserChat(selectedUserId);
+            selectedUserRef.current = selectedUserId;
+            if (messageFormRef.current) {
+                messageFormRef.current.classList.remove(styles.hidden);
+            }
         }
     }, [selectedUserId]);
 
@@ -100,11 +111,15 @@ const DirectPage = () => {
 
         listItem.addEventListener('click', userItemClick);
         connectedUsersList.appendChild(listItem);
+
+        // Highlight the user from URL param
+        if (parseInt(user.id) === selectedUserId) {
+            listItem.classList.add(styles.active);
+        }
     };
 
     const userItemClick = (event) => {
         const clickedUser = event.currentTarget;
-        console.log(clickedUser);
         setSelectedUserId(parseInt(clickedUser.id));
         selectedUserRef.current = parseInt(clickedUser.id);
         if (clickedUser.querySelector(`.${styles.nbrMsg}`)) {
@@ -167,10 +182,10 @@ const DirectPage = () => {
                 senderId: parseInt(userId),
                 recipientId: parseInt(selectedUserId),
                 content: messageContent,
+                file: selectedFile ? selectedFile.name : null,
                 timestamp: new Date()
             };
 
-            // Send the message through WebSocket
             stompClientRef.current.send("/app/chat", {}, JSON.stringify(chatMessage));
             displayMessage(parseInt(userId), messageContent);
             messageInputRef.current.value = '';
@@ -182,14 +197,12 @@ const DirectPage = () => {
         const message = JSON.parse(payload.body);
         const currentSelectedUserId = selectedUserRef.current;
 
-        // Display received message
         if (
             (message.senderId === currentSelectedUserId && message.recipientId === parseInt(userId)) ||
             (message.senderId === parseInt(userId) && message.recipientId === currentSelectedUserId)
         ) {
             displayMessage(message.senderId, message.content);
 
-            // If there's a file to send and we have a message ID, upload the file
             if (selectedFile && message.id) {
                 const formData = new FormData();
                 formData.append("file", selectedFile);
@@ -206,7 +219,6 @@ const DirectPage = () => {
             }
         }
 
-        // Update the UI for notifications, if needed
         const notifiedUser = document.getElementById(message.senderId);
         if (notifiedUser && !notifiedUser.classList.contains(styles.active)) {
             const nbrMsg = notifiedUser.querySelector(`.${styles.nbrMsg}`);
@@ -242,7 +254,7 @@ const DirectPage = () => {
                         ))}
                     </div>
 
-                    <form id="messageForm" ref={messageFormRef} className={styles.hidden}>
+                    <form id="messageForm" ref={messageFormRef} className={selectedUserId ? '' : styles.hidden}>
                         <div className={styles.messageInput}>
                             <input
                                 ref={messageInputRef}
@@ -251,7 +263,7 @@ const DirectPage = () => {
                                 id="message"
                                 placeholder="Type your message..."
                             />
-                            <ChatImageDropzone onFileSelected={setSelectedFile} />
+                            {/* <ChatImageDropzone onFileSelected={setSelectedFile} /> */}
                             <button onClick={sendMessage}>Send</button>
                         </div>
                     </form>

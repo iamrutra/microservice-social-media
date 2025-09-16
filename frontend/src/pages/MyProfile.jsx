@@ -253,14 +253,13 @@ const MyProfile = () => {
     function editProfile(event) {
         event.preventDefault();
 
-        const username = document.getElementById("editUsername").value;
+        // const username = document.getElementById("editUsername").value;
         const fullName = document.getElementById("editFullName").value;
         const dateOfBirth = document.getElementById("editDateOfBirth").value;
         const email = document.getElementById("editEmail").value;
         const password = document.getElementById("editPassword").value;
 
         const userData = {
-            username: (username !== "") ? username : null,
             fullName: (fullName !== "") ? fullName : null,
             dateOfBirth: (dateOfBirth !== "") ? dateOfBirth : null,
             email: (email !== "") ? email : null,
@@ -494,10 +493,10 @@ const MyProfile = () => {
                                             />
                                         )}
                                         <UserProfileDropzone userProfileId={id}/>
-                                        <div>
-                                            <label>Username</label>
-                                            <input id="editUsername" type="text" placeholder={user.username}/>
-                                        </div>
+                                        {/*<div>*/}
+                                        {/*    <label>Username</label>*/}
+                                        {/*    <input id="editUsername" type="text" placeholder={user.username}/>*/}
+                                        {/*</div>*/}
                                         <div>
                                             <label>Full Name</label>
                                             <input id="editFullName" type="text" placeholder={user.fullName}/>

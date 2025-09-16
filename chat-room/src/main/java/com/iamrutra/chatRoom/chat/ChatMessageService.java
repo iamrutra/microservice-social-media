@@ -3,6 +3,8 @@ package com.iamrutra.chatRoom.chat;
 import com.iamrutra.chatRoom.bucket.BucketName;
 import com.iamrutra.chatRoom.chatroom.ChatRoomService;
 import com.iamrutra.chatRoom.fileStore.FileStore;
+import com.iamrutra.chatRoom.user.User;
+import com.iamrutra.chatRoom.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,7 @@ public class ChatMessageService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomService chatRoomService;
     private final FileStore fileStore;
+    private final UserService userService;
 
     public ChatMessage save(ChatMessage chatMessage) {
         var chatId = chatRoomService.getChatRoomId(

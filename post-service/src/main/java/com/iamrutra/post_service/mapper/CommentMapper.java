@@ -3,7 +3,7 @@ package com.iamrutra.post_service.mapper;
 import com.iamrutra.post_service.model.Comment;
 import com.iamrutra.post_service.model.CommentRequest;
 import com.iamrutra.post_service.model.CommentResponse;
-import com.iamrutra.post_service.service.PostService;
+import com.iamrutra.post_service.model.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,13 +11,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommentMapper {
 
-    private final PostService postService;
-
-    public Comment toComment(CommentRequest comment) {
-        var post = postService.getPostById(comment.getPostId());
+    public Comment toComment(CommentRequest request, Post post) {
         return Comment.builder()
-                .comment(comment.getComment())
-                .userId(comment.getUserId())
+                .comment(request.getComment())
+                .userId(request.getUserId())
                 .post(post)
                 .build();
     }
@@ -33,3 +30,4 @@ public class CommentMapper {
                 .build();
     }
 }
+

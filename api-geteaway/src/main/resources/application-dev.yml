@@ -7,7 +7,7 @@ eureka:
 
 keycloak:
   realm: iamrutra
-  auth-server-url: http://localhost:8080/realm/iamrutra
+  auth-server-url: http://localhost:8080/realms/iamrutra
   resource: springboot-keycloak
   public-client: true
   bearer-only: false
