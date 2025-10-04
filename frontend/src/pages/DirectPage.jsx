@@ -116,6 +116,16 @@ const DirectPage = () => {
         if (parseInt(user.id) === selectedUserId) {
             listItem.classList.add(styles.active);
         }
+
+        // Smooth scroll to new user if it's the selected one
+        if (parseInt(user.id) === selectedUserId) {
+            setTimeout(() => {
+                listItem.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 100);
+        }
     };
 
     const userItemClick = (event) => {
@@ -130,6 +140,12 @@ const DirectPage = () => {
             item.classList.remove(styles.active);
         });
         clickedUser.classList.add(styles.active);
+
+        // Smooth scroll to clicked user
+        clickedUser.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
 
         if (messageFormRef.current) {
             messageFormRef.current.classList.remove(styles.hidden);
@@ -228,7 +244,7 @@ const DirectPage = () => {
     };
 
     return (
-        <div>
+        <div className={styles.directPageContainer}>
             <div className={styles.chatContainer} id="chat-page">
                 <div className={styles.usersList}>
                     <div className={styles.usersListContainer}>

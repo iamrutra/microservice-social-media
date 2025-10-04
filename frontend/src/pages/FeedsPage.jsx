@@ -1,14 +1,21 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from "axios";
 import FeedsService from "../API/FeedsService";
 import PostService from "../API/PostService";
 import UserService from "../API/UserService";
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styles from "../styles/FeedsPage.module.css";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faHeart as filledHeart} from "@fortawesome/free-solid-svg-icons";
-import {faComment, faHeart as outlinedHeart} from "@fortawesome/free-regular-svg-icons";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+    faHeart as filledHeart, 
+    faSmile,
+    faImage,
+    faPaperPlane
+} from "@fortawesome/free-solid-svg-icons";
+import { 
+    faComment, 
+    faHeart as outlinedHeart
+} from "@fortawesome/free-regular-svg-icons";
 
 const FeedsPage = () => {
     const [posts, setPosts] = useState([]);
@@ -19,56 +26,72 @@ const FeedsPage = () => {
     const [commentatorImages, setCommentatorImages] = useState({});
     const [pagePosts, setPagePosts] = useState(0);
     const [pageComments, setPageComments] = useState(0);
-    const [hasMorePosts, setHasMorePosts] = useState(true)
-    const [isFirstComments, setIsFirstComments] = useState(true)
-    const [isLastComments, setIsLastComments] = useState(false)
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [isFirstComments, setIsFirstComments] = useState(true);
+    const [isLastComments, setIsLastComments] = useState(false);
     const [users, setUsers] = useState({});
-    const [authorImages, setAuthorImages] = useState({})
+    const [authorImages, setAuthorImages] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [newComment, setNewComment] = useState({});
 
+    const checkUserLikes = async (posts) => {
+        const postsWithLikes = await Promise.all(
+            posts.map(async (post) => {
+                try {
+                    const likeResponse = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+                    return {
+                        ...post,
+                        isLiked: likeResponse != null
+                    };
+                } catch (error) {
+                    console.error('Error checking like status:', error);
+                    return {
+                        ...post,
+                        isLiked: false
+                    };
+                }
+            })
+        );
+        return postsWithLikes;
+    };
 
     useEffect(() => {
-        console.log("Page posts changed:", pagePosts);
         const fetchFeeds = async () => {
+            setLoading(true);
             try {
                 const postsData = await FeedsService.getAllPosts(pagePosts, 10);
-                console.log("Fetched posts:", postsData.body.content);
                 if (postsData.body.content.length === 0) {
                     setHasMorePosts(false);
                 }
 
+                // Check user likes for new posts
+                const postsWithLikes = await checkUserLikes(postsData.body.content);
+
                 setPosts(prevPosts => {
-                    const newPosts = postsData.body.content.filter(post =>
+                    const newPosts = postsWithLikes.filter(post =>
                         !prevPosts.some(prevPost => prevPost.id === post.id)
                     );
                     return [...prevPosts, ...newPosts];
                 });
             } catch (error) {
-                console.error('Ошибка при получении данных постов пользователя:', error);
+                console.error('Ошибка при получении данных постов:', error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchFeeds();
-    }, [pagePosts]);
+    }, [pagePosts, userId]);
 
-    const fetchComments = async (postId) => { // NOT MINE PEACE OF CODE!!! I JUST ADDED THIS FUNCTION, its works and god thanks for that
+    const fetchComments = async (postId) => {
         try {
             const commentsData = await PostService.getAllCommentsByPostId(postId, 5, pageComments);
-            if (commentsData.first === true){
-                setIsFirstComments(true)
-            } else {
-                setIsFirstComments(false)
-            }
-            console.log("isFirst " + isFirstComments)
-            if (commentsData.last === true){
-                setIsLastComments(true)
-            } else {
-                setIsLastComments(false)
-            }
-            console.log("isLast " + isLastComments)
-            console.log(commentsData);
-            setCommentsByPostId({
-                ...commentsByPostId,
+            setIsFirstComments(commentsData.first);
+            setIsLastComments(commentsData.last);
+            
+            setCommentsByPostId(prev => ({
+                ...prev,
                 [postId]: commentsData.content
-            });
+            }));
 
             const usersToFetch = commentsData.content.map(comment => comment.userId);
             const uniqueUserIds = [...new Set(usersToFetch)];
@@ -87,9 +110,9 @@ const FeedsPage = () => {
             console.error('Ошибка при получении комментариев:', error);
         }
     };
+
     useEffect(() => {
         const postIdsWithOpenComments = Object.keys(openComments).filter(postId => openComments[postId]);
-
         postIdsWithOpenComments.forEach(postId => {
             fetchComments(postId);
         });
@@ -109,13 +132,10 @@ const FeedsPage = () => {
     };
 
     const handleScroll = useCallback(() => {
-        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 10 && hasMorePosts) {
-            setPagePosts(prevPages => {
-                console.log(prevPages + 1);
-                return prevPages + 1;
-            });
+        if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.scrollHeight - 10 && hasMorePosts && !loading) {
+            setPagePosts(prevPages => prevPages + 1);
         }
-    }, [hasMorePosts]);
+    }, [hasMorePosts, loading]);
 
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);
@@ -153,50 +173,111 @@ const FeedsPage = () => {
     }, [users]);
 
     const toggleComments = (postId) => {
-        setOpenComments((prevOpenComments) => ({
-            ...prevOpenComments,
-            [postId]: !prevOpenComments[postId],
+        setOpenComments(prev => ({
+            ...prev,
+            [postId]: !prev[postId],
         }));
 
         if (!openComments[postId]) {
             fetchComments(postId);
         } else {
-            setCommentsByPostId((prevComments) => ({
-                ...prevComments,
+            setCommentsByPostId(prev => ({
+                ...prev,
                 [postId]: undefined,
             }));
         }
     };
 
-    function formatDate(date) {
+    const formatDate = (date) => {
         const d = new Date(date);
+        const now = new Date();
+        const diffTime = Math.abs(now - d);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        
         const day = d.getDate();
         const month = d.getMonth() + 1;
         const year = d.getFullYear();
         const hours = d.getHours();
         const minutes = d.getMinutes();
 
-        return `
-        ${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year} 
-        ${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}
-    `;
-    }
+        return `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year} ${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}`;
+    };
 
-    function handlePreviousCommentsPage() {
-        setPageComments(prevPage => prevPage - 1);
-        console.log(pageComments);
-    }
+    const handleLike = async (post, index) => {
+        try {
+            const response = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+            let updatedPosts = [...posts];
 
-    function handleNextCommentsPage() {
+            if (response != null) {
+                await PostService.updatePostLikeStatus(post.id, userId);
+                updatedPosts[index].totalLikes = post.totalLikes - 1;
+                updatedPosts[index].isLiked = false;
+            } else {
+                await PostService.updatePostLikeStatus(post.id, userId);
+                updatedPosts[index].totalLikes = post.totalLikes + 1;
+                updatedPosts[index].isLiked = true;
+            }
+
+            setPosts(updatedPosts);
+        } catch (error) {
+            console.error('Error updating like status:', error);
+        }
+    };
+
+    const handleCommentSubmit = async (e, postId, index) => {
+        e.preventDefault();
+        const comment = newComment[postId] || '';
+        if (!comment.trim()) return;
+
+        try {
+            await PostService.createComment(comment, postId, userId);
+            
+            // Update comment count
+            const updatedPosts = [...posts];
+            updatedPosts[index].totalComments += 1;
+            setPosts(updatedPosts);
+            
+            // Clear input
+            setNewComment(prev => ({ ...prev, [postId]: '' }));
+            
+            // Refresh comments
+            fetchComments(postId);
+        } catch (error) {
+            console.error('Error creating comment:', error);
+        }
+    };
+
+    const handleDeleteComment = async (commentId, postId, index) => {
+        try {
+            await PostService.deleteCommentByIdAndUserIdAndPostId(commentId, parseInt(userId), postId);
+            
+            // Update comment count
+            const updatedPosts = [...posts];
+            updatedPosts[index].totalComments -= 1;
+            setPosts(updatedPosts);
+            
+            // Refresh comments
+            fetchComments(postId);
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    };
+
+    const handlePreviousCommentsPage = () => {
+        setPageComments(prevPage => Math.max(0, prevPage - 1));
+    };
+
+    const handleNextCommentsPage = () => {
         setPageComments(prevPage => prevPage + 1);
-        console.log(pageComments);
-    }
+    };
 
     const fetchUser = useCallback(async (id) => {
         try {
             if (!users[id]) {
                 const fetchedUser = await UserService.getUser(id);
-                console.log(fetchedUser)
                 setUsers(prevUsers => ({
                     ...prevUsers,
                     [id]: fetchedUser
@@ -225,156 +306,189 @@ const FeedsPage = () => {
             }
             return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
         } catch (error) {
-            console.error('Ошибка при загрузке изображения комментатора:', error);
+            console.error('Ошибка при загрузке изображения автора:', error);
             return `http://localhost:8010/api/v1/users/defaultPfp/image/download`;
         }
     };
 
     return (
         <main className={styles.feedsMain}>
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>
+                        <span className={styles.gradientText}>News Feed</span>
+                    </h1>
+                    <p className={styles.subtitle}>Stay updated with the latest posts</p>
+                </div>
 
-            <div className={styles.posts}>
-                {posts.length > 0 ? (
-                    posts.map((post, index) => (
-                        <div key={post.id} className={styles.post}>
-                            <div className={styles.author}>
-                                <img
-                                    className={styles.authorImage}
-                                    src={authorImages[post.userId] || 'loading_image_placeholder_url'}
-                                    alt="User avatar"
-                                />
-                                <a href={"user/" + users[post.userId]?.id}>{users[post.userId]?.username || 'Loading user...'}</a>
-                            </div>
-                            {post.postImage && (
-                                <img
-                                    className={styles.postImage}
-                                    src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`}
-                                    alt="Post image"
-                                />
-                            )}
-                            <h3>{post.title}</h3>
-                            <p>{post.content}</p>
-                            <h5>Created at: {formatDate(post.createdAt)}</h5>
-                            <div className={styles.statContent}>
-                                <h5>{post.totalLikes}</h5>
-                                <form onSubmit={async (e) => {
-                                    e.preventDefault();
-                                    try {
-                                        const response = await PostService.findLikesByUserIdAndPostId(userId, post.id);
-                                        let updatedPosts = [...posts];
-
-                                        if (response != null) {
-                                            // Unlike the post
-                                            console.log(response);
-                                            await PostService.updatePostLikeStatus(post.id, userId);
-                                            updatedPosts[index].totalLikes = post.totalLikes - 1;
-                                            updatedPosts[index].isLiked = false;
-                                        } else {
-                                            // Like the post
-                                            console.log(response);
-                                            await PostService.updatePostLikeStatus(post.id, userId);
-                                            updatedPosts[index].totalLikes = post.totalLikes + 1;
-                                            updatedPosts[index].isLiked = true;
-                                        }
-
-                                        setPosts(updatedPosts);
-                                    } catch (error) {
-                                        console.error('Error updating like status:', error);
-                                    }
-                                }}>
-                                    <button type="submit" className={styles.likeButton}>
-                                        <FontAwesomeIcon
-                                            icon={post.isLiked ? filledHeart : outlinedHeart}
-                                            size="2x"
-                                            color={post.isLiked ? "red" : "black"}
+                <div className={styles.posts}>
+                    {posts.length > 0 ? (
+                        posts.map((post, index) => (
+                            <article key={post.id} className={styles.post}>
+                                {/* Post Header */}
+                                <div className={styles.postHeader}>
+                                    <div className={styles.authorInfo}>
+                                        <img
+                                            className={styles.authorImage}
+                                            src={authorImages[post.userId] || 'loading_image_placeholder_url'}
+                                            alt="User avatar"
                                         />
-                                    </button>
-                                </form>
-                                <h5 className="totalCommets">{post.totalComments}</h5>
-                                <button
-                                    type="button"
-                                    className={styles.commentButton}
-                                    onClick={() => toggleComments(post.id)}
-                                >
-                                    <FontAwesomeIcon icon={faComment} size="2x"/>
-                                </button>
-                            </div>
-                            <div className={styles.comments}>
-                                {
-                                    openComments[post.id] ?
-                                        <form onSubmit={async (e) => {
-                                            e.preventDefault();
-                                            const comment = e.target[0].value;
-                                            const totalComments = document.getElementsByClassName('totalCommets');
-                                            totalComments[index].innerText = parseInt(totalComments[index].innerText) + 1;
-                                            console.log(comment);
-                                            e.target[0].value = '';
-                                            try {
-                                                await PostService.createComment(
-                                                    comment,
-                                                    post.id,
-                                                    userId
-                                                );
-                                                fetchComments(post.id);
-                                            } catch (error) {
-                                                console.error('Error creating comment:', error);
-                                            }
-                                        }}>
-                                            <input type="text" placeholder="Enter your comment"></input>
-                                            <button type="submit">Send</button>
-                                        </form>
-                                        : null
-                                }
-                                {commentsByPostId[post.id] ? (
-                                    commentsByPostId[post.id].map((comment) => (
-                                        <div key={comment.id} className={styles.comment}>
-                                            <div className={styles.commentator}>
-                                                <img
-                                                    className={styles.commentatorImage}
-                                                    src={commentatorImages[comment.userId] || 'loading_image_placeholder_url'}
-                                                    alt="User avatar"
-                                                />
-                                                <h4>{commentators[comment.userId]?.username || 'Загрузка...'}</h4>
-                                                <h5>{comment.comment}</h5>
-                                            </div>
+                                        <div className={styles.authorDetails}>
+                                            <a href={"user/" + users[post.userId]?.id} className={styles.authorName}>
+                                                {users[post.userId]?.username || 'Loading...'}
+                                            </a>
+                                            <span className={styles.postTime}>
+                                                {formatDate(post.createdAt)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                            <h5>Created at: {formatDate(comment.createdAt)}</h5> <br />
-                                            {comment.userId === parseInt(userId) ? (
-                                                <button onClick={async () => {
-                                                    const totalComments = document.getElementsByClassName('totalCommets');
-                                                    totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
-                                                    await PostService.deleteCommentByIdAndUserIdAndPostId(comment.id, parseInt(userId), post.id);
-                                                    fetchComments(post.id);
-                                                }}>Delete comment
+                                {/* Post Content */}
+                                <div className={styles.postContent}>
+                                    {post.title && <h3 className={styles.postTitle}>{post.title}</h3>}
+                                    {post.content && <p className={styles.postText}>{post.content}</p>}
+                                    {post.postImage && (
+                                        <div className={styles.postImageContainer}>
+                                            <img
+                                                className={styles.postImage}
+                                                src={`http://localhost:8020/api/v1/posts/${post.id}/image/download`}
+                                                alt="Post image"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Post Actions */}
+                                <div className={styles.postActions}>
+                                    <div className={styles.actionGroup}>
+                                        <button 
+                                            className={styles.actionButton}
+                                            onClick={() => handleLike(post, index)}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={post.isLiked ? filledHeart : outlinedHeart}
+                                                className={post.isLiked ? styles.liked : ''}
+                                            />
+                                            <span>{post.totalLikes}</span>
+                                        </button>
+                                        
+                                        <button 
+                                            className={styles.actionButton}
+                                            onClick={() => toggleComments(post.id)}
+                                        >
+                                            <FontAwesomeIcon icon={faComment} />
+                                            <span>{post.totalComments}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Comments Section */}
+                                {openComments[post.id] && (
+                                    <div className={styles.commentsSection}>
+                                        {/* Comment Form */}
+                                        <form 
+                                            className={styles.commentForm}
+                                            onSubmit={(e) => handleCommentSubmit(e, post.id, index)}
+                                        >
+                                            <img
+                                                className={styles.commentUserImage}
+                                                src={authorImages[userId] || 'loading_image_placeholder_url'}
+                                                alt="Your avatar"
+                                            />
+                                            <div className={styles.commentInputContainer}>
+                                            <input
+                                                type="text"
+                                                placeholder="Write a comment..."
+                                                value={newComment[post.id] || ''}
+                                                onChange={(e) => setNewComment(prev => ({ 
+                                                    ...prev, 
+                                                    [post.id]: e.target.value 
+                                                }))}
+                                                className={styles.commentInput}
+                                            />
+                                                <button 
+                                                    type="submit" 
+                                                    className={styles.commentSubmit}
+                                                    disabled={!newComment[post.id]?.trim()}
+                                                >
+                                                    <FontAwesomeIcon icon={faPaperPlane} />
                                                 </button>
-                                            ) : console.log(userId, comment.userId)}
-                                            <hr></hr>
-                                        </div>
-                                    ))
-                                ) : null}
-                                {
-                                    openComments[post.id] ?
-                                        <div className={styles.pagination}>
-                                            <button onClick={handlePreviousCommentsPage}
-                                                    disabled={isFirstComments}
-                                                    className={styles.arrowButton}>
-                                                &larr;
-                                            </button>
-                                            <button onClick={handleNextCommentsPage}
-                                                    disabled={isLastComments}
-                                                    className={styles.arrowButton}>
-                                                &rarr;
-                                            </button>
-                                        </div>
-                                        : null
-                                }
+                                            </div>
+                                        </form>
+
+                                        {/* Comments List */}
+                                        {commentsByPostId[post.id] && (
+                                            <div className={styles.commentsList}>
+                                                {commentsByPostId[post.id].map((comment) => (
+                                                    <div key={comment.id} className={styles.comment}>
+                                                        <img
+                                                            className={styles.commentatorImage}
+                                                            src={commentatorImages[comment.userId] || 'loading_image_placeholder_url'}
+                                                            alt="User avatar"
+                                                        />
+                                                        <div className={styles.commentContent}>
+                                                            <div className={styles.commentHeader}>
+                                                            <span className={styles.commentatorName}>
+                                                                {commentators[comment.userId]?.username || 'Loading...'}
+                                                            </span>
+                                                                <span className={styles.commentTime}>
+                                                                    {formatDate(comment.createdAt)}
+                                                                </span>
+                                                            </div>
+                                                            <p className={styles.commentText}>{comment.comment}</p>
+                                                        </div>
+                                                        {comment.userId === parseInt(userId) && (
+                                                            <button 
+                                                                className={styles.deleteCommentButton}
+                                                                onClick={() => handleDeleteComment(comment.id, post.id, index)}
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                
+                                                {/* Pagination */}
+                                                <div className={styles.commentsPagination}>
+                                                    <button 
+                                                        onClick={handlePreviousCommentsPage}
+                                                        disabled={isFirstComments}
+                                                        className={styles.paginationButton}
+                                                    >
+                                                        ← Previous
+                                                    </button>
+                                                    <button 
+                                                        onClick={handleNextCommentsPage}
+                                                        disabled={isLastComments}
+                                                        className={styles.paginationButton}
+                                                    >
+                                                        Next →
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </article>
+                        ))
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <div className={styles.emptyIcon}>
+                                <FontAwesomeIcon icon={faImage} />
                             </div>
-                            <hr/>
+                            <h3>No posts yet</h3>
+                            <p>Be the first to share something interesting!</p>
                         </div>
-                    ))
-                ) : (
-                    <h3>No posts yet</h3>
-                )}
+                    )}
+                    
+                    {loading && (
+                        <div className={styles.loadingState}>
+                            <div className={styles.spinner}></div>
+                            <p>Loading new posts...</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </main>
     );

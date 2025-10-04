@@ -41,6 +41,27 @@ const UserProfile = () => {
             }
         };
 
+        const checkUserLikes = async (posts) => {
+            const postsWithLikes = await Promise.all(
+                posts.map(async (post) => {
+                    try {
+                        const likeResponse = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+                        return {
+                            ...post,
+                            isLiked: likeResponse != null
+                        };
+                    } catch (error) {
+                        console.error('Error checking like status:', error);
+                        return {
+                            ...post,
+                            isLiked: false
+                        };
+                    }
+                })
+            );
+            return postsWithLikes;
+        };
+
         const fetchPosts = async () => {
             try {
                 const postsData = await PostService.getPostsByUserId(id, pagePosts, 10);
@@ -48,8 +69,11 @@ const UserProfile = () => {
                     setHasMorePosts(false);
                 }
 
+                // Check user likes for new posts
+                const postsWithLikes = await checkUserLikes(postsData.content);
+
                 setPosts(prevPosts => {
-                    const newPosts = postsData.content.filter(post =>
+                    const newPosts = postsWithLikes.filter(post =>
                         !prevPosts.some(prevPost => prevPost.id === post.id)
                     );
                     return [...prevPosts, ...newPosts];
@@ -243,33 +267,45 @@ const UserProfile = () => {
         <div className={styles.userProfile}>
             {user ? (
                 <>
-                    <div className={styles.user}>
-                        {user.profileImageLink ? (
-                            <img
-                                className={styles.profileImage}
-                                src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
-                                alt="User avatar"
-                            />
-                        ) : (
-                            <img
-                                className={styles.profileImage}
-                                src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
-                                alt="Default Picture For Profile"
-                            />
-                        )}
-                        <h3>{followers.length} followers</h3>
-                        <h3>{following.length} following</h3>
-                        <h3></h3>
-                        <br/>
-                        {isFollowing ? (
-                            <button onClick={() => handleUnfollow(id)} className={styles.unfollowButton}>Unfollow</button>
-                        ) : (
-                            <button onClick={() => handleFollow(id)} className={styles.followButton}>Follow</button>
-                        )}
-                        <h2>Username: {user.username}</h2>
-                        <h3>Full Name: {user.fullName}</h3>
-                        <h3>Date of Birth: {user.dateOfBirth}</h3>
-                        <h3>Created at: {formatDate(user.createdAt)}</h3>
+                    <div className={styles.headerCard}>
+                        <div className={styles.headerTop}>
+                            {user.profileImageLink ? (
+                                <img
+                                    className={styles.profileImage}
+                                    src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
+                                    alt="User avatar"
+                                />
+                            ) : (
+                                <img
+                                    className={styles.profileImage}
+                                    src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
+                                    alt="Default Picture For Profile"
+                                />
+                            )}
+                            <div className={styles.headerMeta}>
+                                <div className={styles.nameRow}>
+                                    <h2>{user.fullName || user.username}</h2>
+                                    <span className={styles.usernameMuted}>@{user.username}</span>
+                                </div>
+                                <div className={styles.statsRow}>
+                                    <div className={styles.statChip}><strong>{followers.length}</strong><span>Followers</span></div>
+                                    <div className={styles.statChip}><strong>{following.length}</strong><span>Following</span></div>
+                                    <div className={styles.statChip}><strong>{posts.length}</strong><span>Posts</span></div>
+                                </div>
+                                <div className={styles.actionsRow}>
+                                    {isFollowing ? (
+                                        <button onClick={() => handleUnfollow(id)} className={styles.secondaryButton}>Unfollow</button>
+                                    ) : (
+                                        <button onClick={() => handleFollow(id)} className={styles.primaryButton}>Follow</button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className={styles.detailsRow}>
+                            <div className={styles.detail}><span>Born</span><strong>{user.dateOfBirth || '-'}</strong></div>
+                            <div className={styles.detail}><span>Joined</span><strong>{formatDate(user.createdAt)}</strong></div>
+                            <div className={styles.detail}><span>Email</span><strong>{user.email || '-'}</strong></div>
+                        </div>
                     </div>
 
                     <div className={styles.posts}>
@@ -318,7 +354,7 @@ const UserProfile = () => {
                                                 <FontAwesomeIcon
                                                     icon={post.isLiked ? filledHeart : outlinedHeart}
                                                     size="2x"
-                                                    color={post.isLiked ? "red" : "black"}
+                                                    color={post.isLiked ? "red" : "#ffffff"}
                                                 />
                                             </button>
                                         </form>
@@ -372,7 +408,7 @@ const UserProfile = () => {
 
                                                     <h5>Created at: {formatDate(comment.createdAt)}</h5>
                                                     {comment.userId === parseInt(userId) ? (
-                                                        <button onClick={async () => {
+                                                        <button className={styles.dangerButton} onClick={async () => {
                                                             const totalComments = document.getElementsByClassName('totalCommets');
                                                             totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
                                                             await PostService.deleteCommentByIdAndUserIdAndPostId(comment.id, parseInt(userId), post.id);

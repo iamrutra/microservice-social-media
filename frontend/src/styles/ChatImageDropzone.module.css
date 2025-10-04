@@ -2,5 +2,6 @@
     width: 80%;
     height: 80%;
     object-fit: cover;
-    border-radius: 5px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
 }

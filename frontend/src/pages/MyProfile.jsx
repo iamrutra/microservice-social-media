@@ -46,6 +46,27 @@ const MyProfile = () => {
             }
         };
 
+        const checkUserLikes = async (posts) => {
+            const postsWithLikes = await Promise.all(
+                posts.map(async (post) => {
+                    try {
+                        const likeResponse = await PostService.findLikesByUserIdAndPostId(userId, post.id);
+                        return {
+                            ...post,
+                            isLiked: likeResponse != null
+                        };
+                    } catch (error) {
+                        console.error('Error checking like status:', error);
+                        return {
+                            ...post,
+                            isLiked: false
+                        };
+                    }
+                })
+            );
+            return postsWithLikes;
+        };
+
         const fetchPosts = async () => {
             try {
                 const postsData = await PostService.getPostsByUserId(id, pagePosts, 10);
@@ -53,8 +74,11 @@ const MyProfile = () => {
                     setHasMorePosts(false);
                 }
 
+                // Check user likes for new posts
+                const postsWithLikes = await checkUserLikes(postsData.content);
+
                 setPosts(prevPosts => {
-                    const newPosts = postsData.content.filter(post =>
+                    const newPosts = postsWithLikes.filter(post =>
                         !prevPosts.some(prevPost => prevPost.id === post.id)
                     );
                     return [...prevPosts, ...newPosts];
@@ -281,54 +305,68 @@ const MyProfile = () => {
         <div>
             {user ? (
                 <div className={styles.userProfile}>
-                    <div className={styles.user}>
-                        {user.profileImageLink ? (
-                            <img
-                                className={styles.profileImage}
-                                src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
-                                alt="User avatar"
-                            />
-                        ) : (
-                            <img
-                                className={styles.profileImage}
-                                src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
-                                alt="Default Picture For Profile"
-                            />
-                        )}
-                        <button onClick={toggleEditProfile}>Edit profile</button>
-                        <h3 className={styles.followers}>{followers.length} followers</h3>
-                        <h3 className={styles.following}>{following.length} following</h3>
-                        <h2>Username: {user.username}</h2>
-                        <h3>Full Name: {user.fullName}</h3>
-                        <h3>Date of Birth: {user.dateOfBirth}</h3>
-                        <h3>Created at: {formatDate(user.createdAt)}</h3>
+                    <div className={styles.headerCard}>
+                        <div className={styles.headerTop}>
+                            {user.profileImageLink ? (
+                                <img
+                                    className={styles.profileImage}
+                                    src={`http://localhost:8010/api/v1/users/${user.id}/image/download`}
+                                    alt="User avatar"
+                                />
+                            ) : (
+                                <img
+                                    className={styles.profileImage}
+                                    src={`http://localhost:8010/api/v1/users/defaultPfp/image/download`}
+                                    alt="Default Picture For Profile"
+                                />
+                            )}
+                            <div className={styles.headerMeta}>
+                                <div className={styles.nameRow}>
+                                    <h2>{user.fullName || user.username}</h2>
+                                    <span className={styles.usernameMuted}>@{user.username}</span>
+                                </div>
+                                <div className={styles.statsRow}>
+                                    <div className={styles.statChip}><strong>{followers.length}</strong><span>Followers</span></div>
+                                    <div className={styles.statChip}><strong>{following.length}</strong><span>Following</span></div>
+                                    <div className={styles.statChip}><strong>{posts.length}</strong><span>Posts</span></div>
+                                </div>
+                                <div className={styles.actionsRow}>
+                                    <button className={styles.primaryButton} onClick={toggleEditProfile}>Edit profile</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={styles.detailsRow}>
+                            <div className={styles.detail}><span>Born</span><strong>{user.dateOfBirth || '-'}</strong></div>
+                            <div className={styles.detail}><span>Joined</span><strong>{formatDate(user.createdAt)}</strong></div>
+                            <div className={styles.detail}><span>Email</span><strong>{user.email || '-'}</strong></div>
+                        </div>
                     </div>
 
                     <div className={styles.posts}>
-                    <div>
-                        <h2>My Posts</h2>
-                            <form onSubmit={handleCreatePost}>
-                                <div className={styles.headerForm}>
-                                    <input
-                                        type="text"
-                                        placeholder="Title"
-                                        value={postTitle}
-                                        onChange={e => setPostTitle(e.target.value)}
-                                    />
-                                </div>
-                                <div className={styles.contentForm}>
+                        <div className={styles.sectionHeader}>
+                            <h2>My Posts</h2>
+                        </div>
+                        <form onSubmit={handleCreatePost} className={styles.composerCard}>
+                            <div className={styles.headerForm}>
+                                <input
+                                    type="text"
+                                    placeholder="Title"
+                                    value={postTitle}
+                                    onChange={e => setPostTitle(e.target.value)}
+                                />
+                            </div>
+                            <div className={styles.contentForm}>
                                 <textarea
-                                    placeholder="Content"
+                                    placeholder="Share something..."
                                     rows={3}
                                     value={postContent}
                                     onChange={e => setPostContent(e.target.value)}
                                 />
-                                    <PostImageDropzone onFileSelected={setSelectedPostFile} />
-                                    {selectedPostFile && <p>Выбран файл: {selectedPostFile.name}</p>}
-                                    <button type="submit">Create post</button>
-                                </div>
-                            </form>
-                        </div>
+                                <PostImageDropzone onFileSelected={setSelectedPostFile} />
+                                {selectedPostFile && <p>Выбран файл: {selectedPostFile.name}</p>}
+                                <button type="submit">Publish</button>
+                            </div>
+                        </form>
                         {posts.map((post, index) => (
                             <div key={post.id} className={styles.post}>
                                 {post.postImage && (
@@ -372,7 +410,7 @@ const MyProfile = () => {
                                             <FontAwesomeIcon
                                                 icon={post.isLiked ? filledHeart : outlinedHeart}
                                                 size="2x"
-                                                color={post.isLiked ? "red" : "black"}
+                                                color={post.isLiked ? "red" : "#ffffff"}
                                             />
                                         </button>
                                     </form>
@@ -382,7 +420,7 @@ const MyProfile = () => {
                                         className={styles.commentButton}
                                         onClick={() => toggleComments(post.id)}
                                     >
-                                        <FontAwesomeIcon icon={faComment} size="2x" color="black"/>
+                                        <FontAwesomeIcon icon={faComment} size="2x" color="white"/>
                                     </button>
                                 </div>
                                 <div className={styles.comments}>
@@ -425,7 +463,7 @@ const MyProfile = () => {
                                                 </div>
 
                                                 <h5>Created at: {formatDate(comment.createdAt)}</h5>
-                                                <button onClick={async () => {
+                                                <button className={styles.dangerButton} onClick={async () => {
                                                     const totalComments = document.getElementsByClassName('totalCommets');
                                                     totalComments[index].innerText = parseInt(totalComments[index].innerText) - 1;
                                                     console.log(post.id);
@@ -454,7 +492,7 @@ const MyProfile = () => {
                                     }
                                 </div>
 
-                                <button onClick={() => {
+                                <button className={styles.secondaryButton} onClick={() => {
                                     PostService.deleteLikesByPostId(post.id).then(() => {
                                         PostService.deletePostById(post.id)
                                             .then(() => {
