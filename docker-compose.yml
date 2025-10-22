@@ -101,7 +101,8 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:cd
+  mysql_data:
     driver: local
   kafka_data:
+
     driver: local
